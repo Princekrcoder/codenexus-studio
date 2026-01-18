@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import './TechDashboard.css';
+import { useState } from 'react'
+import './TechDashboard.css'
 
 const TechDashboard = () => {
-  const [activeTab, setActiveTab] = useState('frontend');
+  const [activeTab, setActiveTab] = useState('frontend')
 
   const techData = {
     frontend: {
@@ -35,11 +35,11 @@ const TechDashboard = () => {
       description: "Automated deployment and infrastructure management.",
       technologies: ["Docker", "AWS", "Vercel", "GitHub Actions"]
     }
-  };
+  }
 
   const handleTabClick = (tabName) => {
-    setActiveTab(tabName);
-  };
+    setActiveTab(tabName)
+  }
 
   return (
     <section className="tech-dashboard">
@@ -79,7 +79,7 @@ const TechDashboard = () => {
         </div>
       </div>
     </section>
-  );
-};
+  )
+}
 
-export default TechDashboard;
+export default TechDashboard

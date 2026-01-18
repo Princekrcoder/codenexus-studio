@@ -1,5 +1,4 @@
-import React from 'react';
-import './Services.css';
+import './Services.css'
 
 const Services = () => {
   return (
@@ -91,7 +90,7 @@ const Services = () => {
         </div>
       </div>
     </section>
-  );
-};
+  )
+}
 
-export default Services;
+export default Services

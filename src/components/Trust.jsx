@@ -1,5 +1,4 @@
-import React from 'react';
-import './Trust.css';
+import './Trust.css'
 
 const Trust = () => {
   const trustItems = [
@@ -27,7 +26,7 @@ const Trust = () => {
       title: "Long-Term Support",
       description: "Beyond launch, we provide ongoing support, improvements, and optimizations to help your product grow with time."
     }
-  ];
+  ]
 
   return (
     <section className="trust-section">
@@ -50,7 +49,7 @@ const Trust = () => {
         </div>
       </div>
     </section>
-  );
-};
+  )
+}
 
-export default Trust;
+export default Trust
