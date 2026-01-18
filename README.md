@@ -1,30 +1,32 @@
-# CodeNexus Studio - React App
+# CodeNexus Studio - Vite React App
 
-A modern, responsive React application for CodeNexus Studio showcasing next-generation web solutions.
+A modern, high-performance React application built with Vite for CodeNexus Studio showcasing next-generation web solutions.
 
-## Features
+## ⚡ Features
 
-- **Modern React Architecture**: Component-based structure with hooks
+- **Vite Build Tool**: Lightning-fast development with HMR (Hot Module Replacement)
+- **Modern React 18**: Latest React features with hooks and concurrent rendering
+- **Component Architecture**: Modular, reusable components with clean separation
 - **Responsive Design**: Mobile-first approach with glass morphism effects
 - **Interactive Elements**: Animated typing effect, tech dashboard, and smooth transitions
 - **Theme Support**: Light/dark theme toggle with localStorage persistence
-- **Performance Optimized**: Clean code structure and optimized animations
+- **Performance Optimized**: Fast builds, tree-shaking, and optimized bundles
 
-## Components
+## 🏗️ Components
 
-- **Navbar**: Responsive navigation with mobile menu
-- **Hero**: Animated code editor with typing effect
-- **Services**: Service offerings with interactive visuals
-- **Trust**: Why choose us section with feature cards
-- **TechDashboard**: Interactive technology showcase
-- **Process**: Development process timeline
+- **Navbar**: Responsive navigation with mobile hamburger menu
+- **Hero**: Animated code editor with realistic typing effect
+- **Services**: Service offerings with interactive code visualizations
+- **Trust**: Feature cards explaining why choose CodeNexus
+- **TechDashboard**: Interactive technology showcase with tabs
+- **Process**: Development process timeline without numbered steps
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
-- npm or yarn
+- Node.js (v16 or higher)
+- npm, yarn, or pnpm
 
 ### Installation
 
@@ -37,53 +39,88 @@ cd codenexus-studio
 2. Install dependencies:
 ```bash
 npm install
+# or
+yarn install
+# or
+pnpm install
 ```
 
 3. Start the development server:
 ```bash
-npm start
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
 ```
 
 4. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 ### Available Scripts
 
-- `npm start` - Runs the app in development mode
-- `npm build` - Builds the app for production
-- `npm test` - Launches the test runner
-- `npm eject` - Ejects from Create React App (one-way operation)
+- `npm run dev` - Start development server with HMR
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build locally
+- `npm run lint` - Run ESLint for code quality
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 src/
 ├── components/
-│   ├── Navbar.js & Navbar.css
-│   ├── Hero.js & Hero.css
-│   ├── Services.js & Services.css
-│   ├── Trust.js & Trust.css
-│   ├── TechDashboard.js & TechDashboard.css
-│   └── Process.js & Process.css
-├── App.js
+│   ├── Navbar.jsx & Navbar.css
+│   ├── Hero.jsx & Hero.css
+│   ├── Services.jsx & Services.css
+│   ├── Trust.jsx & Trust.css
+│   ├── TechDashboard.jsx & TechDashboard.css
+│   └── Process.jsx & Process.css
+├── App.jsx
 ├── App.css
-├── index.js
+├── main.jsx
 └── index.css
 ```
 
-## Technologies Used
+## 🛠️ Technologies Used
 
-- React 18
-- CSS3 with CSS Variables
-- Google Fonts (Outfit, Fira Code)
-- Modern CSS features (Grid, Flexbox, Backdrop Filter)
+- **Vite** - Next generation frontend tooling
+- **React 18** - Modern React with concurrent features
+- **CSS3** - Modern CSS with variables, grid, flexbox
+- **Google Fonts** - Outfit & Fira Code typography
+- **ESLint** - Code quality and consistency
 
-## Browser Support
+## ⚡ Vite Benefits
+
+- **Fast HMR**: Instant updates during development
+- **Optimized Builds**: Tree-shaking and code splitting
+- **Modern ES Modules**: Native ESM support
+- **Plugin Ecosystem**: Rich plugin architecture
+- **TypeScript Ready**: Built-in TypeScript support
+
+## 🌐 Browser Support
 
 - Chrome (latest)
 - Firefox (latest)
 - Safari (latest)
 - Edge (latest)
 
-## License
+## 📦 Build & Deploy
+
+```bash
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+The `dist` folder contains the production-ready files that can be deployed to any static hosting service.
+
+## 🎨 Customization
+
+- **Themes**: Modify CSS variables in `src/index.css`
+- **Components**: Each component has its own CSS file for easy customization
+- **Animations**: Adjust timing and effects in component-specific CSS files
+
+## 📄 License
 
 This project is private and proprietary to CodeNexus Studio.
