@@ -2,7 +2,7 @@
 cd /d E:\codenexus-studio
 
 :: Git identity (commit ke liye)
-git config --global user.name "Prince Kumar"
+git config --global user.name "Princekrcoder"
 git config --global user.email "princekrcoder@gmail.com"
 
 :: Git process
