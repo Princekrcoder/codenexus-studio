@@ -1,0 +1,200 @@
+/* =========================
+   PROCESS SECTION STYLES
+ ========================= */
+
+.process-wrapper {
+    color: var(--text-main);
+    position: relative;
+    /* Allow the global bg-blob or add specific background here if needed */
+}
+
+/* Specific glows for this section if desired, strictly scoped or removed if global blobs suffice.
+   User bad 'body::before' so keeping it might double up.
+   Commenting out strictly body glows to avoid double background issues vs App.jsx blobs.
+   If specific glows are needed, they should be on .process-wrapper::before/after with absolute positioning.
+*/
+
+/*
+.process-wrapper::before {
+  content: "";
+  position: absolute;
+  top: -10%; left: -10%;
+  width: 40%; height: 40%;
+  background: radial-gradient(circle, rgba(112, 0, 255, 0.15), transparent 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+.process-wrapper::after {
+  content: "";
+  position: absolute;
+  bottom: -10%; right: -10%;
+  width: 45%; height: 45%;
+  background: radial-gradient(circle, rgba(0, 242, 255, 0.12), transparent 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+*/
+
+.process-container {
+    max-width: 1100px;
+    margin: 100px auto;
+    padding: 0 20px;
+}
+
+.process-title {
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 80px;
+    background: linear-gradient(to bottom, var(--text-main) 30%, var(--text-muted));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.process-subtitle {
+    text-align: center;
+    max-width: 720px;
+    margin: -55px auto 70px;
+    color: var(--text-dim);
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.process-timeline {
+    position: relative;
+}
+
+/* Glowing vertical line */
+.process-timeline::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(to bottom,
+            transparent,
+            var(--accent-cyan) 15%,
+            var(--accent) 85%,
+            /* --accent-purple used in original, mapping to --accent might be better? or keep if defined */
+            transparent);
+    transform: translateX(-50%);
+}
+
+/* Note: --accent-purple was local. Global is --accent (#a855f7). I should probably use var(--accent) or define --accent-purple in index.css if distinct.
+   Process: #7000ff (purple) vs Global: #a855f7 (lighter purple).
+   I'll map it to var(--primary) or var(--accent) for consistency, or add --accent-purple to index.css if strictly needed.
+   Let's assume consistency is better: use var(--primary) (#6366f1) or var(--accent) (#a855f7). 
+   The user code had #7000ff. That's close to primary.
+   Let's stick to the variables available or use the hex code if unique.
+   I'll use var(--accent) for now.
+*/
+
+.process-timeline-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 100px;
+    opacity: 0;
+    transform: translateY(50px);
+    transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+    position: relative;
+}
+
+.process-timeline-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.process-timeline-item:nth-child(even) {
+    flex-direction: row-reverse;
+}
+
+.process-timeline-content {
+    width: 42%;
+    padding: 30px;
+    background: var(--card-bg);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    position: relative;
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease, border 0.3s ease;
+}
+
+/* Neon hover effect */
+.process-timeline-content:hover {
+    transform: scale(1.03);
+    border: 1px solid var(--accent-cyan);
+    box-shadow: 0 0 22px rgba(0, 242, 255, 0.22);
+}
+
+.process-timeline-dot {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background: var(--bg-tech);
+    /* Replacing var(--bg) */
+    border: 3px solid var(--accent-cyan);
+    border-radius: 50%;
+    z-index: 2;
+    box-shadow: 0 0 15px var(--accent-cyan);
+}
+
+/* Process tag styling */
+.step-tag {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--accent-cyan);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.process-timeline-content h3 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.5rem;
+    margin: 10px 0;
+    color: var(--text-main);
+}
+
+.process-timeline-content p {
+    color: var(--text-dim);
+    line-height: 1.7;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* Optional bullet points inside card */
+.points {
+    margin-top: 14px;
+    padding-left: 16px;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .timeline::before {
+        left: 30px;
+    }
+
+    .timeline-item {
+        flex-direction: row !important;
+        margin-bottom: 60px;
+    }
+
+    .timeline-content {
+        width: calc(100% - 80px);
+        margin-left: 60px;
+    }
+
+    .timeline-dot {
+        left: 30px;
+    }
+}
