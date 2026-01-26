@@ -34,7 +34,6 @@
 .footer-grid {
     display: grid;
     grid-template-columns: 1.5fr 1fr 1fr 1fr;
-    /* Brand gets more space */
     gap: 40px;
     margin-bottom: 60px;
     position: relative;
@@ -86,7 +85,8 @@
     text-decoration: none;
     font-size: 1rem;
     transition: all 0.3s ease;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
 }
 
 .footer-links a:hover {
@@ -126,31 +126,69 @@
     color: var(--text-main);
 }
 
-/* Socials (Reusing styles or simplified) */
+/* =========================
+   Socials (React Icons)
+========================= */
+
 .footer-socials {
     display: flex;
     gap: 12px;
+    margin-top: 18px;
 }
 
 .footer-social-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: var(--text-muted);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+
+    display: grid;
+    place-items: center;
+
+    color: var(--text-main);
     text-decoration: none;
-    transition: all 0.3s ease;
-    font-size: 0.9rem;
+
+    transition: 0.25s ease;
+}
+
+.footer-social-icon svg {
+    font-size: 18px;
 }
 
 .footer-social-icon:hover {
-    background: var(--primary);
-    color: #fff;
-    transform: translateY(-2px);
+    transform: translateY(-4px);
+    background: rgba(99, 102, 241, 0.18);
+    border-color: rgba(99, 102, 241, 0.35);
+    box-shadow: 0 14px 40px rgba(99, 102, 241, 0.18);
+}
+
+/* =========================
+   Footer Contact Icons
+========================= */
+
+.footer-contact li a,
+.footer-location {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.footer-contact li a span,
+.footer-location span {
+    color: var(--text-muted);
+}
+
+.footer-contact li a:hover span {
+    color: var(--primary);
+}
+
+.footer-contact svg,
+.footer-location svg {
+    font-size: 18px;
+    color: var(--primary);
+    flex-shrink: 0;
 }
 
 /* Responsive */

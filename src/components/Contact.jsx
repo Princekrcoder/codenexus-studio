@@ -1,5 +1,9 @@
-
 import '../styles/Contact.css'
+import { FaLinkedinIn, FaGithub, FaInstagram } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
+import { MdLocationOn } from "react-icons/md";
+import { HiOutlineMail } from "react-icons/hi";
+import { FiPhoneCall } from "react-icons/fi";
 
 const Contact = () => {
     return (
@@ -11,6 +15,7 @@ const Contact = () => {
                     <div className="contact-header">
                         <h2>Let's Build Something <span>Great</span></h2>
                     </div>
+
                     <p className="contact-desc">
                         Whether you have a specific project in mind or just want to explore new possibilities,
                         we're here to help you navigate the digital landscape.
@@ -18,26 +23,33 @@ const Contact = () => {
 
                     <div className="info-cards">
                         <div className="info-card">
-                            <div className="icon-box">✉️</div>
+                            <div className="icon-box">
+                                <HiOutlineMail />
+                            </div>
                             <div className="info-content">
                                 <h4>Email Us</h4>
-                                <p>hello@codenexus.com</p>
+                                <p>codenexusstudio@gmail.com</p>
                             </div>
                         </div>
 
+                        {/* ✅ Phone Added */}
                         <div className="info-card">
-                            <div className="icon-box">📞</div>
+                            <div className="icon-box">
+                                <FiPhoneCall />
+                            </div>
                             <div className="info-content">
                                 <h4>Call Us</h4>
-                                <p>+1 (555) 123-4567</p>
+                                <p>+91 8092701770</p>
                             </div>
                         </div>
 
                         <div className="info-card">
-                            <div className="icon-box">📍</div>
+                            <div className="icon-box">
+                                <MdLocationOn />
+                            </div>
                             <div className="info-content">
                                 <h4>Visit Us</h4>
-                                <p>San Francisco, CA</p>
+                                <p>Mohali, India</p>
                             </div>
                         </div>
                     </div>
@@ -45,13 +57,50 @@ const Contact = () => {
 
                 {/* Right Form Column */}
                 <div className="contact-form-wrapper">
+
                     <div className="social-links-top">
                         <h4>Connect With Us</h4>
+
                         <div className="social-icons">
-                            <a href="#" className="social-icon">Li</a>
-                            <a href="#" className="social-icon">Tw</a>
-                            <a href="#" className="social-icon">Gh</a>
-                            <a href="#" className="social-icon">Ig</a>
+                            <a
+                                href="https://www.linkedin.com/"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="social-icon"
+                                aria-label="LinkedIn"
+                            >
+                                <FaLinkedinIn />
+                            </a>
+
+                            <a
+                                href="https://twitter.com/"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="social-icon"
+                                aria-label="Twitter"
+                            >
+                                <FaXTwitter />
+                            </a>
+
+                            <a
+                                href="https://github.com/"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="social-icon"
+                                aria-label="GitHub"
+                            >
+                                <FaGithub />
+                            </a>
+
+                            <a
+                                href="https://www.instagram.com/"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="social-icon"
+                                aria-label="Instagram"
+                            >
+                                <FaInstagram />
+                            </a>
                         </div>
                     </div>
 
@@ -75,6 +124,7 @@ const Contact = () => {
                             Send Message
                         </button>
                     </form>
+
                 </div>
 
             </div>

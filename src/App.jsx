@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react'
 import './styles/App.css'
+
+import SEO from "./components/SEO"
+
 import Navbar from './components/Navbar.jsx'
 import Hero from './components/Hero.jsx'
 import Services from './components/Services.jsx'
 import Trust from './components/Trust.jsx'
 import TechDashboard from './components/TechDashboard.jsx'
-import OurProcessTimeline from "./components/Process.jsx";
-import Portfolio from './components/Portfolio.jsx';
-import Testimonials from './components/Testimonials.jsx';
-import CTA from './components/CTA.jsx';
-import Contact from './components/Contact.jsx';
-import Footer from './components/Footer.jsx';
+import OurProcessTimeline from "./components/Process.jsx"
+import Portfolio from './components/Portfolio.jsx'
+import Testimonials from './components/Testimonials.jsx'
+import CTA from './components/CTA.jsx'
+import Contact from './components/Contact.jsx'
+import Footer from './components/Footer.jsx'
 
 function App() {
   const [theme, setTheme] = useState('dark')
@@ -31,22 +34,32 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <div className="bg-blob blob-1"></div>
-      <div className="bg-blob blob-2"></div>
+    <>
+      {/* SEO for Home Page */}
+      <SEO
+        title="CodeNexus Studio | Web Development Company in Mohali (Punjab)"
+        description="CodeNexus Studio provides Web Development, Web Apps, E-commerce, Portfolio Websites and Tech Consulting in Mohali, Punjab. Serving India and global clients."
+        canonical="https://codenexusstudio.vercel.app/"
+        ogImage="/og-image.png"
+      />
 
-      <Navbar theme={theme} toggleTheme={toggleTheme} />
-      <Hero />
-      <Services />
-      <Trust />
-      <TechDashboard />
-      <Portfolio />
-      <Testimonials />
-      <CTA />
-      <OurProcessTimeline />
-      <Contact />
-      <Footer />
-    </div>
+      <div className="App">
+        <div className="bg-blob blob-1"></div>
+        <div className="bg-blob blob-2"></div>
+
+        <Navbar theme={theme} toggleTheme={toggleTheme} />
+        <Hero />
+        <Services />
+        <Trust />
+        <TechDashboard />
+        <Portfolio />
+        <Testimonials />
+        <CTA />
+        <OurProcessTimeline />
+        <Contact />
+        <Footer />
+      </div>
+    </>
   )
 }
 

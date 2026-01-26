@@ -1,5 +1,8 @@
-
 import '../styles/Footer.css'
+import { FaLinkedinIn, FaGithub, FaInstagram } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
+import { HiOutlineMail } from "react-icons/hi";
+import { MdLocationOn } from "react-icons/md";
 
 const Footer = () => {
     return (
@@ -10,14 +13,51 @@ const Footer = () => {
                     {/* Brand Column */}
                     <div className="footer-col footer-brand">
                         <div className="logo">Code<span>Nexus</span>.</div>
+
                         <p className="footer-desc">
                             Building scalable, high-performance digital experiences for forward-thinking companies.
                         </p>
+
                         <div className="footer-socials">
-                            <a href="#" className="footer-social-icon">Li</a>
-                            <a href="#" className="footer-social-icon">Tw</a>
-                            <a href="#" className="footer-social-icon">Gh</a>
-                            <a href="#" className="footer-social-icon">Ig</a>
+                            <a
+                                href="https://www.linkedin.com/"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="footer-social-icon"
+                                aria-label="LinkedIn"
+                            >
+                                <FaLinkedinIn />
+                            </a>
+
+                            <a
+                                href="https://twitter.com/"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="footer-social-icon"
+                                aria-label="Twitter"
+                            >
+                                <FaXTwitter />
+                            </a>
+
+                            <a
+                                href="https://github.com/"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="footer-social-icon"
+                                aria-label="GitHub"
+                            >
+                                <FaGithub />
+                            </a>
+
+                            <a
+                                href="https://www.instagram.com/"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="footer-social-icon"
+                                aria-label="Instagram"
+                            >
+                                <FaInstagram />
+                            </a>
                         </div>
                     </div>
 
@@ -28,7 +68,7 @@ const Footer = () => {
                             <li><a href="#about">About Us</a></li>
                             <li><a href="#portfolio">Our Work</a></li>
                             <li><a href="#careers">Careers</a></li>
-                            <li><a href="#contact">Contact</a></li>
+                            <li><a href="#contact-form">Contact</a></li>
                         </ul>
                     </div>
 
@@ -46,10 +86,20 @@ const Footer = () => {
                     {/* Contact */}
                     <div className="footer-col">
                         <h3>Contact</h3>
-                        <ul className="footer-links">
-                            <li><a href="mailto:hello@codenexus.com">hello@codenexus.com</a></li>
-                            <li><a href="tel:+15551234567">+1 (555) 123-4567</a></li>
-                            <li><span>San Francisco, CA</span></li>
+                        <ul className="footer-links footer-contact">
+                            <li>
+                                <a href="mailto:codenexusstudio@gmail.com">
+                                    <HiOutlineMail />
+                                    <span>codenexusstudio@gmail.com</span>
+                                </a>
+                            </li>
+
+                            <li>
+                                <span className="footer-location">
+                                    <MdLocationOn />
+                                    <span>Mohali, India</span>
+                                </span>
+                            </li>
                         </ul>
                     </div>
                 </div>
