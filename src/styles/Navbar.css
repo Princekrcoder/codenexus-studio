@@ -44,17 +44,19 @@ nav.scrolled {
 .nav-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .nav-links {
   display: flex;
+  align-items: center;
 }
 
 .nav-links a {
   color: var(--text-muted);
   margin-left: 28px;
   text-decoration: none;
+  font-size: 0.92rem;
 }
 
 .nav-links a:hover {
@@ -74,9 +76,42 @@ nav.scrolled {
   background: rgba(255, 255, 255, .06);
   border: 1px solid var(--glass-border);
   color: var(--text-main);
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: 10px;
   cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.nav-login-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 20px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff !important;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 10px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  line-height: 1;
+  height: 38px;
+  transition: opacity 0.3s, transform 0.25s, box-shadow 0.3s;
+  box-shadow: 0 4px 14px var(--primary-glow);
+}
+
+.nav-login-btn:hover {
+  opacity: 0.88;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px var(--primary-glow);
+  color: #fff;
 }
 
 /* =========================
@@ -121,6 +156,20 @@ nav.scrolled {
   .nav-links a {
     margin: 0;
     font-size: 1rem;
+  }
+
+  /* Login link inside mobile dropdown */
+  .nav-links .mobile-login-link {
+    display: block;
+    text-align: center;
+    margin: 4px 0 0;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff !important;
+    font-weight: 700;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 0.95rem;
   }
 
   /* When menu is open */

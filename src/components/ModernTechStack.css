@@ -1,0 +1,179 @@
+/* TechStack.css */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Fira+Code&display=swap');
+
+:root {
+  --bg-dark: #050511;
+  --primary: #6366f1;
+  --primary-glow: rgba(99, 102, 241, 0.4);
+  --accent: #a855f7;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --glass-bg: rgba(30, 41, 59, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+.tech-container {
+  min-height: 100vh;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: 'Outfit', sans-serif;
+  position: relative;
+  overflow: hidden;
+  padding: 80px 24px;
+}
+
+/* Background Blobs (Jaisa aapne manga tha) */
+.bg-blob {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, var(--primary-glow), transparent 70%);
+  border-radius: 50%;
+  z-index: 0;
+  animation: blobFloat 10s infinite alternate;
+}
+
+.blob-1 { top: -10%; left: -10%; }
+.blob-2 {
+  bottom: -10%; right: -10%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.2), transparent 70%);
+  animation-delay: -5s;
+}
+
+@keyframes blobFloat {
+  to { transform: translate(40px, -40px) scale(1.1); }
+}
+
+/* Glass Dashboard */
+.dashboard-wrapper {
+  position: relative;
+  z-index: 10;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.dashboard-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  display: flex;
+  min-height: 500px;
+  overflow: hidden;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+}
+
+/* Sidebar */
+.tech-sidebar {
+  width: 35%;
+  background: rgba(0, 0, 0, 0.2);
+  border-right: 1px solid var(--glass-border);
+  padding: 20px;
+}
+
+.tab-btn {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 20px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  color: var(--text-muted);
+  text-align: left;
+  cursor: pointer;
+  transition: 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-weight: 600;
+  position: relative;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+}
+
+.tab-btn.active {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 4px;
+  height: 60%;
+  background: var(--primary);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 15px var(--primary);
+}
+
+/* Display Area */
+.tech-display {
+  flex: 1;
+  padding: 50px;
+  position: relative;
+}
+
+.display-header h2 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  background: linear-gradient(to right, #fff, var(--text-muted));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.pills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.tech-pill {
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 50px;
+  font-size: 0.9rem;
+  transition: 0.3s;
+}
+
+.tech-pill:hover {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px var(--primary-glow);
+}
+
+/* Progress Bar */
+.progress-box {
+  margin-top: 40px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 20px;
+  border-radius: 15px;
+}
+
+.bar-bg {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--primary), var(--accent));
+  box-shadow: 0 0 15px var(--primary-glow);
+  transition: width 1s ease-in-out;
+}
+
+@media (max-width: 768px) {
+  .dashboard-card { flex-direction: column; }
+  .tech-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--glass-border); }
+}

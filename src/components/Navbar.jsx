@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import '../styles/Navbar.css'
 
 const Navbar = ({ theme, toggleTheme }) => {
@@ -22,14 +23,15 @@ const Navbar = ({ theme, toggleTheme }) => {
       <div className="logo">Code<span>Nexus</span>.</div>
 
       <div className="nav-right">
-        <button className="menu-toggle" onClick={toggleMenu}>☰</button>
+        <button className="menu-toggle" onClick={toggleMenu} aria-label="Toggle menu">☰</button>
         <div className={`nav-links ${isMenuOpen ? 'show' : ''}`}>
           <a href="#solutions">Solutions</a>
           <a href="#case-studies">Case Studies</a>
           <a href="#pricing">Pricing</a>
           <a href="#about">About</a>
         </div>
-        <button className="theme-toggle" onClick={toggleTheme}>
+        <Link to="/login" className="nav-login-btn">Login</Link>
+        <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === 'light' ? '🌞' : '🌙'}
         </button>
       </div>

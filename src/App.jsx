@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react'
+import { Routes, Route } from 'react-router-dom'
 import './styles/App.css'
 
 import SEO from "./components/SEO"
+import Login from './components/Login.jsx'
+import Register from './components/Register.jsx'
+import AdminLayout from './admin/AdminLayout.jsx'
+import ClientLogin from './client/ClientLogin.jsx'
+import ClientLayout from './client/ClientLayout.jsx'
+import ManagerLayout from './manager/ManagerLayout.jsx'
 
 import Navbar from './components/Navbar.jsx'
 import Hero from './components/Hero.jsx'
@@ -33,7 +40,7 @@ function App() {
     localStorage.setItem('theme', newTheme)
   }
 
-  return (
+  const HomePage = () => (
     <>
       {/* SEO for Home Page */}
       <SEO
@@ -42,7 +49,6 @@ function App() {
         canonical="https://codenexusstudio.vercel.app/"
         ogImage="/og-image.png"
       />
-
       <div className="App">
         <div className="bg-blob blob-1"></div>
         <div className="bg-blob blob-2"></div>
@@ -61,6 +67,19 @@ function App() {
       </div>
     </>
   )
+
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<Login theme={theme} toggleTheme={toggleTheme} />} />
+      <Route path="/register" element={<Register theme={theme} toggleTheme={toggleTheme} />} />
+      <Route path="/admin/*" element={<AdminLayout theme={theme} toggleTheme={toggleTheme} />} />
+      <Route path="/client/login" element={<ClientLogin theme={theme} toggleTheme={toggleTheme} />} />
+      <Route path="/client/*" element={<ClientLayout theme={theme} toggleTheme={toggleTheme} />} />
+      <Route path="/manager/*" element={<ManagerLayout theme={theme} toggleTheme={toggleTheme} />} />
+    </Routes>
+  )
 }
 
 export default App
+
