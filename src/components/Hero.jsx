@@ -138,7 +138,7 @@ const Hero = () => {
     <section className="hero">
       <div className="hero-inner">
         <div>
-          <div className="badge">🚀 v2.0 Now Live</div>
+          <div className="badge">Now Live</div>
           <h1>
             Build Faster.
             <br />
