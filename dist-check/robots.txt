@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://codenexusstudio.vercel.app/sitemap.xml
