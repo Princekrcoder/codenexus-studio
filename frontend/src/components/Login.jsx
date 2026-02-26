@@ -25,6 +25,13 @@ const Login = ({ theme, toggleTheme }) => {
         if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
     }
 
+    const mockUsers = [
+        { email: 'user@example.com', password: 'password123', role: 'user', route: '/' },
+        { email: 'manager@example.com', password: 'password123', role: 'manager', route: '/manager' },
+        { email: 'admin@example.com', password: 'password123', role: 'admin', route: '/admin' },
+        { email: 'developer@example.com', password: 'password123', role: 'developer', route: '/' }
+    ]
+
     const handleSubmit = async (e) => {
         e.preventDefault()
         const validationErrors = validate()
@@ -33,11 +40,23 @@ const Login = ({ theme, toggleTheme }) => {
             return
         }
         setLoading(true)
+
         // Simulate API call
-        await new Promise(res => setTimeout(res, 1500))
+        await new Promise(res => setTimeout(res, 1000))
         setLoading(false)
-        // On success, navigate home (replace with real auth later)
-        navigate('/')
+
+        const user = mockUsers.find(
+            u => u.email === formData.email && u.password === formData.password
+        )
+
+        if (user) {
+            // Store mock auth in local storage
+            localStorage.setItem('userRole', user.role)
+            localStorage.setItem('userEmail', user.email)
+            navigate(user.route)
+        } else {
+            setErrors({ email: 'Invalid email or password' })
+        }
     }
 
     return (
