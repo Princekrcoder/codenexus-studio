@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import "../styles/Hero.css";
 
+import customLogo from "../assets/code_nexus-removebg-preview.png";
+
 const Hero = () => {
   const editorRef = useRef(null);
   const timeoutsRef = useRef([]);
@@ -138,7 +140,7 @@ const Hero = () => {
     <section className="hero">
       <div className="hero-inner">
         <div>
-          <div className="badge">Now Live</div>
+          <img src={customLogo} alt="CodeNexus Logo" className="hero-custom-badge" />
           <h1>
             Build Faster.
             <br />

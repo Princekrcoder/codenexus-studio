@@ -7,7 +7,7 @@ import {
     ChevronDown, ChevronRight, Menu, Sun, Moon, Bell,
     Search, TrendingUp, AlertCircle, RefreshCcw
 } from 'lucide-react'
-import './ManagerLayout.css'
+import '../styles/ManagerLayout.css'
 
 import ManagerDashboard from './pages/ManagerDashboard'
 import ManagerClients from './pages/ManagerClients'

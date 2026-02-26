@@ -4,7 +4,7 @@ import {
     LayoutDashboard, FolderKanban, FileDown, CreditCard, MessageSquare, User,
     Menu, Sun, Moon, Bell, ChevronRight, Globe, Settings, BarChart3
 } from 'lucide-react'
-import './ClientLayout.css'
+import '../styles/ClientLayout.css'
 
 import ClientDashboard from './pages/ClientDashboard'
 import ClientProjects from './pages/ClientProjects'

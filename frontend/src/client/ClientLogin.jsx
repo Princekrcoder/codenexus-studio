@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import './ClientLayout.css'
+import '../styles/ClientLayout.css'
 
 const ClientLogin = ({ theme, toggleTheme }) => {
     const [formData, setFormData] = useState({ email: '', password: '' })

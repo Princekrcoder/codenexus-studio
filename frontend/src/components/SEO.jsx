@@ -1,8 +1,8 @@
 import { Helmet } from "react-helmet-async";
 
 const SEO = ({
-  title = "CodeNexus Studio | Web Development, Web Apps & E-commerce",
-  description = "CodeNexus Studio (Mohali, Punjab) builds fast, scalable websites, web applications, e-commerce platforms, portfolios and provides tech consulting for startups and businesses.",
+  title = "Top Web Development Agency in Mohali | CodeNexus Studio",
+  description = "CodeNexus Studio is a premier web development company in Mohali, Punjab offering custom React web apps, e-commerce solutions, and tech consulting for modern businesses.",
   canonical = "https://codenexusstudio.vercel.app/",
   ogImage = "/og-image.png",
 }) => {

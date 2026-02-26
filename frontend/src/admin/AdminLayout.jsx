@@ -6,7 +6,7 @@ import {
     Menu, Search, Bell, Sun, Moon, Globe, ChevronDown,
     TrendingUp, AlertCircle, CheckCircle2, RefreshCcw, BarChart3
 } from 'lucide-react'
-import './AdminLayout.css'
+import '../styles/AdminLayout.css'
 
 import Dashboard from './pages/Dashboard'
 import Clients from './pages/Clients'
