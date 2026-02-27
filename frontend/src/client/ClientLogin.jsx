@@ -1,11 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-<<<<<<< HEAD
-import './ClientLayout.css'
-import { useAuth } from '../context/AuthContext'
-=======
 import '../styles/ClientLayout.css'
->>>>>>> 284ba4f6126df7127df364123ba165668c199ff0
+import { useAuth } from '../context/AuthContext'
 
 const ClientLogin = ({ theme, toggleTheme }) => {
     const [formData, setFormData] = useState({ email: '', password: '' })
@@ -41,14 +37,14 @@ const ClientLogin = ({ theme, toggleTheme }) => {
 
         try {
             const response = await login(formData.email, formData.password)
-            
+
             // Check if user is a client
             if (response.user.role !== 'Client') {
                 setErrors({ email: 'This portal is for clients only. Please use the main login page.' })
                 logout()
                 return
             }
-            
+
             // Navigate to client dashboard
             navigate('/client')
         } catch (error) {

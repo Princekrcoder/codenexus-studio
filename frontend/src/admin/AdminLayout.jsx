@@ -6,12 +6,8 @@ import {
     Menu, Search, Bell, Sun, Moon, Globe, ChevronDown,
     TrendingUp, AlertCircle, CheckCircle2, RefreshCcw, BarChart3
 } from 'lucide-react'
-<<<<<<< HEAD
-import './AdminLayout.css'
-import { useAuth } from '../context/AuthContext'
-=======
 import '../styles/AdminLayout.css'
->>>>>>> 284ba4f6126df7127df364123ba165668c199ff0
+import { useAuth } from '../context/AuthContext'
 
 import Dashboard from './pages/Dashboard'
 import Clients from './pages/Clients'
@@ -74,7 +70,7 @@ const AdminLayout = ({ theme, toggleTheme }) => {
             navigate('/login')
             return
         }
-        
+
         // Check if user has admin role
         if (user.role !== 'Admin') {
             authLogout()

@@ -7,12 +7,8 @@ import {
     ChevronDown, ChevronRight, Menu, Sun, Moon, Bell,
     Search, TrendingUp, AlertCircle, RefreshCcw
 } from 'lucide-react'
-<<<<<<< HEAD
-import './ManagerLayout.css'
-import { authAPI } from '../services/api'
-=======
 import '../styles/ManagerLayout.css'
->>>>>>> 284ba4f6126df7127df364123ba165668c199ff0
+import { authAPI } from '../services/api'
 
 import ManagerDashboard from './pages/ManagerDashboard'
 import ManagerClients from './pages/ManagerClients'
@@ -70,19 +66,19 @@ const ManagerLayout = ({ theme, toggleTheme }) => {
         // Check if user is logged in and has valid token
         const user = authAPI.getCurrentUser()
         const isAuth = authAPI.isAuthenticated()
-        
+
         if (!user || !isAuth) {
             navigate('/login')
             return
         }
-        
+
         // Check if user has manager role
         if (user.role !== 'Manager') {
             authAPI.logout()
             navigate('/login')
             return
         }
-        
+
         setUserInfo(user)
     }, [navigate])
 

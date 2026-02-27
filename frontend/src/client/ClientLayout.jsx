@@ -4,12 +4,8 @@ import {
     LayoutDashboard, FolderKanban, FileDown, CreditCard, MessageSquare, User,
     Menu, Sun, Moon, Bell, ChevronRight, Globe, Settings, BarChart3, LogOut
 } from 'lucide-react'
-<<<<<<< HEAD
-import './ClientLayout.css'
-import { authAPI } from '../services/api'
-=======
 import '../styles/ClientLayout.css'
->>>>>>> 284ba4f6126df7127df364123ba165668c199ff0
+import { authAPI } from '../services/api'
 
 import ClientDashboard from './pages/ClientDashboard'
 import ClientProjects from './pages/ClientProjects'
@@ -44,19 +40,19 @@ const ClientLayout = ({ theme, toggleTheme }) => {
         // Check if user is logged in and has valid token
         const user = authAPI.getCurrentUser()
         const isAuth = authAPI.isAuthenticated()
-        
+
         if (!user || !isAuth) {
             navigate('/client/login')
             return
         }
-        
+
         // Check if user has client role
         if (user.role !== 'Client') {
             authAPI.logout()
             navigate('/client/login')
             return
         }
-        
+
         setUserInfo(user)
     }, [navigate])
 

@@ -9,7 +9,7 @@ async function createDatabase() {
         host: 'localhost',
         port: 5432,
         user: 'postgres',
-        password: 'kali',
+        password: 'newpassword123',
         database: 'postgres' // Connect to default postgres database
     });
 
@@ -33,7 +33,7 @@ async function createDatabase() {
         await client.end();
         console.log('\n✓ Database setup complete!');
         console.log('\nNext step: Run "npm run init-db" to create tables');
-        
+
     } catch (error) {
         console.error('✗ Error creating database:', error.message);
         process.exit(1);
