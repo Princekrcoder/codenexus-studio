@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Save, Download, Upload, Shield, Mail, Palette, Building2, History, UserPlus, RefreshCcw, CheckCircle2, Users, CreditCard } from 'lucide-react'
-import { mockActivity } from '../mockData'
 
 const TABS = [
     { key: 'company', label: 'Company', Icon: Building2 },
@@ -145,22 +144,7 @@ const Settings = ({ theme, toggleTheme }) => {
                     <div className="admin-card">
                         <div className="admin-card-header"><h3><History size={15} style={{ marginRight: 6, verticalAlign: 'middle' }} />Activity Log</h3></div>
                         <div className="activity-feed">
-                            {mockActivity.map(a => (
-                                <div className="activity-item" key={a.id}>
-                                    <div className={`activity-icon-wrap ${a.type}`}>
-                                        {a.type === 'lead' && <UserPlus size={14} />}
-                                        {a.type === 'payment' && <CreditCard size={14} />}
-                                        {a.type === 'update' && <RefreshCcw size={14} />}
-                                        {a.type === 'client' && <Users size={14} />}
-                                        {a.type === 'task' && <CheckCircle2 size={14} />}
-                                    </div>
-                                    <div className="activity-text">
-                                        <div className="activity-action">{a.action}</div>
-                                        <div className="activity-detail">{a.detail}</div>
-                                    </div>
-                                    <div className="activity-time">{a.time}</div>
-                                </div>
-                            ))}
+                            <div className="admin-empty"><p>No recent activity</p></div>
                         </div>
                     </div>
                 </div>

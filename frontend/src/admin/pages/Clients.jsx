@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Pencil, Trash2, Plus, Eye, X, Users, Search, Ban } from 'lucide-react'
-import { mockClients, CLIENT_STATUSES, mockProjects, mockInvoices } from '../mockData'
+import { clientsAPI } from '../../services/api'
 
+const CLIENT_STATUSES = ['Lead', 'Active', 'On Hold', 'Completed', 'Lost']
 const TYPES = ['All', 'Startup', 'Business', 'Personal']
 const PAYMENTS = ['All', 'Paid', 'Unpaid', 'Partial']
 const STATUS_ALL = ['All', ...CLIENT_STATUSES]
 
-const empty = { name: '', email: '', phone: '', type: 'Startup', payment: 'Unpaid', company: '', address: '', gst: '', website: '', industry: '', status: 'Lead', servicePreference: 'Website' }
+const empty = { name: '', email: '', phone: '', type: 'Startup', paymentStatus: 'Unpaid', company: '', address: '', gst: '', website: '', industry: '', status: 'Lead', servicePreference: ['Website'] }
 
 const StatusBadge = ({ s }) => {
     const m = { Lead: 'badge-cyan', Active: 'badge-green', 'On Hold': 'badge-yellow', Completed: 'badge-blue', Lost: 'badge-red' }
@@ -24,7 +25,8 @@ const PayBadge = ({ p }) => {
 
 const Clients = () => {
     const navigate = useNavigate()
-    const [clients, setClients] = useState(mockClients)
+    const [clients, setClients] = useState([])
+    const [loading, setLoading] = useState(true)
     const [statusFilter, setStatusFilter] = useState('All')
     const [typeFilter, setTypeFilter] = useState('All')
     const [payFilter, setPayFilter] = useState('All')
@@ -32,40 +34,94 @@ const Clients = () => {
     const [modal, setModal] = useState(false)
     const [editing, setEditing] = useState(null)
     const [form, setForm] = useState(empty)
+    const [saving, setSaving] = useState(false)
+
+    useEffect(() => {
+        fetchClients()
+    }, [])
+
+    const fetchClients = async () => {
+        try {
+            setLoading(true)
+            const response = await clientsAPI.getAll()
+            setClients(response.clients || [])
+        } catch (error) {
+            console.error('Failed to fetch clients:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const openAdd = () => { setEditing(null); setForm(empty); setModal(true) }
     const openEdit = (c) => {
         setEditing(c.id)
-        setForm({ name: c.name, email: c.email, phone: c.phone, type: c.type, payment: c.payment, company: c.company || '', address: c.address || '', gst: c.gst || '', website: c.website || '', industry: c.industry || '', status: c.status || 'Lead', servicePreference: c.servicePreference || 'Website' })
+        setForm({ 
+            name: c.name, 
+            email: c.email, 
+            phone: c.phone, 
+            type: c.type, 
+            paymentStatus: c.paymentStatus, 
+            company: c.company || '', 
+            address: c.address || '', 
+            gst: c.gst || '', 
+            website: c.website || '', 
+            industry: c.industry || '', 
+            status: c.status || 'Lead', 
+            servicePreference: Array.isArray(c.servicePreference) ? c.servicePreference : [c.servicePreference || 'Website']
+        })
         setModal(true)
     }
-    const save = () => {
+    
+    const save = async () => {
         if (!form.name.trim() || !form.email.trim()) return
-        if (editing) setClients(cl => cl.map(c => c.id === editing ? { ...c, ...form } : c))
-        else setClients(cl => [...cl, { id: Date.now(), projects: 0, joined: new Date().toISOString().split('T')[0], ...form }])
-        setModal(false)
+        
+        try {
+            setSaving(true)
+            const clientData = {
+                ...form,
+                servicePreference: Array.isArray(form.servicePreference) ? form.servicePreference : [form.servicePreference]
+            }
+            
+            if (editing) {
+                await clientsAPI.update(editing, clientData)
+            } else {
+                await clientsAPI.create(clientData)
+            }
+            
+            await fetchClients()
+            setModal(false)
+        } catch (error) {
+            console.error('Failed to save client:', error)
+            alert(error.message || 'Failed to save client')
+        } finally {
+            setSaving(false)
+        }
     }
-    const disable = (id) => {
-        if (confirm('Disable this client?')) setClients(cl => cl.map(c => c.id === id ? { ...c, status: 'Lost' } : c))
+    
+    const disable = async (id) => {
+        if (confirm('Disable this client?')) {
+            try {
+                await clientsAPI.update(id, { status: 'Lost' })
+                await fetchClients()
+            } catch (error) {
+                console.error('Failed to disable client:', error)
+            }
+        }
+    }
+
+    if (loading) {
+        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px', color: 'var(--admin-muted)' }}>Loading clients...</div>
     }
 
     const filtered = clients.filter(c => {
         const mS = statusFilter === 'All' || c.status === statusFilter
         const mT = typeFilter === 'All' || c.type === typeFilter
-        const mP = payFilter === 'All' || c.payment === payFilter
+        const mP = payFilter === 'All' || c.paymentStatus === payFilter
         const mQ = c.name.toLowerCase().includes(search.toLowerCase()) ||
             c.email.toLowerCase().includes(search.toLowerCase()) ||
             (c.company || '').toLowerCase().includes(search.toLowerCase())
         return mS && mT && mP && mQ
     })
-
-    // Compute stats per client
-    const getClientProjects = (name) => mockProjects.filter(p => p.client === name)
-    const getClientInvoices = (name) => mockInvoices.filter(i => i.client === name)
-    const getClientDue = (name) => {
-        const invoices = getClientInvoices(name)
-        return invoices.reduce((s, i) => s + (i.amount - i.paid), 0)
-    }
 
     return (
         <>
@@ -131,38 +187,35 @@ const Clients = () => {
                         </thead>
                         <tbody>
                             {filtered.length === 0 && <tr><td colSpan={9}><div className="admin-empty"><Users size={40} strokeWidth={1.5} color="var(--admin-muted)" style={{ marginBottom: 10 }} /><p>No clients found</p></div></td></tr>}
-                            {filtered.map(c => {
-                                const due = getClientDue(c.name)
-                                return (
-                                    <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/admin/clients/${c.id}`)}>
-                                        <td>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                                <div className="team-avatar">{c.name.slice(0, 2).toUpperCase()}</div>
-                                                <div>
-                                                    <strong>{c.name}</strong>
-                                                    <div style={{ fontSize: '0.72rem', color: 'var(--admin-muted)' }}>{c.email}</div>
-                                                </div>
+                            {filtered.map(c => (
+                                <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/admin/clients/${c.id}`)}>
+                                    <td>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                            <div className="team-avatar">{c.name.slice(0, 2).toUpperCase()}</div>
+                                            <div>
+                                                <strong>{c.name}</strong>
+                                                <div style={{ fontSize: '0.72rem', color: 'var(--admin-muted)' }}>{c.email}</div>
                                             </div>
-                                        </td>
-                                        <td style={{ fontSize: '0.8rem', color: 'var(--admin-muted2)' }}>{c.company || '—'}</td>
-                                        <td><StatusBadge s={c.status} /></td>
-                                        <td><span className="badge badge-blue">{c.servicePreference}</span></td>
-                                        <td><strong>{c.projects}</strong></td>
-                                        <td><PayBadge p={c.payment} /></td>
-                                        <td style={{ fontWeight: 600, color: due > 0 ? 'var(--admin-orange)' : 'var(--admin-green)', fontSize: '0.82rem' }}>
-                                            {due > 0 ? `₹${due.toLocaleString()}` : '—'}
-                                        </td>
-                                        <td style={{ color: 'var(--admin-muted)', fontSize: '0.78rem' }}>{c.joined}</td>
-                                        <td onClick={e => e.stopPropagation()}>
-                                            <div className="action-btns">
-                                                <button className="btn-icon" onClick={() => navigate(`/admin/clients/${c.id}`)} title="View Profile"><Eye size={14} /></button>
-                                                <button className="btn-icon" onClick={() => openEdit(c)} title="Edit"><Pencil size={14} /></button>
-                                                <button className="btn-icon danger" onClick={() => disable(c.id)} title="Disable"><Ban size={14} /></button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )
-                            })}
+                                        </div>
+                                    </td>
+                                    <td style={{ fontSize: '0.8rem', color: 'var(--admin-muted2)' }}>{c.company || '—'}</td>
+                                    <td><StatusBadge s={c.status} /></td>
+                                    <td><span className="badge badge-blue">{Array.isArray(c.servicePreference) ? c.servicePreference[0] : c.servicePreference}</span></td>
+                                    <td><strong>{c.projectCount || 0}</strong></td>
+                                    <td><PayBadge p={c.paymentStatus} /></td>
+                                    <td style={{ fontWeight: 600, color: (c.dueAmount || 0) > 0 ? 'var(--admin-orange)' : 'var(--admin-green)', fontSize: '0.82rem' }}>
+                                        {(c.dueAmount || 0) > 0 ? `₹${(c.dueAmount || 0).toLocaleString()}` : '—'}
+                                    </td>
+                                    <td style={{ color: 'var(--admin-muted)', fontSize: '0.78rem' }}>{c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-IN') : '—'}</td>
+                                    <td onClick={e => e.stopPropagation()}>
+                                        <div className="action-btns">
+                                            <button className="btn-icon" onClick={() => navigate(`/admin/clients/${c.id}`)} title="View Profile"><Eye size={14} /></button>
+                                            <button className="btn-icon" onClick={() => openEdit(c)} title="Edit"><Pencil size={14} /></button>
+                                            <button className="btn-icon danger" onClick={() => disable(c.id)} title="Disable"><Ban size={14} /></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>

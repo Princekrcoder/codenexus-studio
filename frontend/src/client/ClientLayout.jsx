@@ -2,9 +2,10 @@ import { useState, useRef, useEffect } from 'react'
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import {
     LayoutDashboard, FolderKanban, FileDown, CreditCard, MessageSquare, User,
-    Menu, Sun, Moon, Bell, ChevronRight, Globe, Settings, BarChart3
+    Menu, Sun, Moon, Bell, ChevronRight, Globe, Settings, BarChart3, LogOut
 } from 'lucide-react'
 import './ClientLayout.css'
+import { authAPI } from '../services/api'
 
 import ClientDashboard from './pages/ClientDashboard'
 import ClientProjects from './pages/ClientProjects'
@@ -12,7 +13,6 @@ import ClientFiles from './pages/ClientFiles'
 import ClientPayments from './pages/ClientPayments'
 import ClientMessages from './pages/ClientMessages'
 import ClientProfile from './pages/ClientProfile'
-import { clientProfile } from './clientMockData'
 
 const NAV = [
     { section: 'Overview' },
@@ -27,24 +27,43 @@ const NAV = [
     { path: '/client/profile', label: 'Profile & Settings', Icon: User },
 ]
 
-const PAGE_TITLES = {
-    '/client': { title: 'Dashboard', subtitle: `Welcome back, ${clientProfile.name} 👋` },
-    '/client/projects': { title: 'My Projects', subtitle: 'Track your project progress' },
-    '/client/files': { title: 'Files & Deliverables', subtitle: 'Download your project files' },
-    '/client/payments': { title: 'Payments & Invoices', subtitle: 'View your billing history' },
-    '/client/messages': { title: 'Messages', subtitle: 'Communicate with our team' },
-    '/client/profile': { title: 'Profile & Settings', subtitle: 'Manage your account' },
-}
-
 const ClientLayout = ({ theme, toggleTheme }) => {
     const [collapsed, setCollapsed] = useState(false)
     const [mobileOpen, setMobileOpen] = useState(false)
     const [notifOpen, setNotifOpen] = useState(false)
+    const [userInfo, setUserInfo] = useState(null)
     const navigate = useNavigate()
     const location = useLocation()
     const notifRef = useRef(null)
 
-    const pageInfo = PAGE_TITLES[location.pathname] || { title: 'Client Portal', subtitle: '' }
+    useEffect(() => {
+        // Check if user is logged in and has valid token
+        const user = authAPI.getCurrentUser()
+        const isAuth = authAPI.isAuthenticated()
+        
+        if (!user || !isAuth) {
+            navigate('/client/login')
+            return
+        }
+        
+        // Check if user has client role
+        if (user.role !== 'Client') {
+            authAPI.logout()
+            navigate('/client/login')
+            return
+        }
+        
+        setUserInfo(user)
+    }, [navigate])
+
+    const pageInfo = userInfo ? {
+        '/client': { title: 'Dashboard', subtitle: `Welcome back, ${userInfo.name} 👋` },
+        '/client/projects': { title: 'My Projects', subtitle: 'Track your project progress' },
+        '/client/files': { title: 'Files & Deliverables', subtitle: 'Download your project files' },
+        '/client/payments': { title: 'Payments & Invoices', subtitle: 'View your billing history' },
+        '/client/messages': { title: 'Messages', subtitle: 'Communicate with our team' },
+        '/client/profile': { title: 'Profile & Settings', subtitle: 'Manage your account' },
+    }[location.pathname] || { title: 'Client Portal', subtitle: '' } : { title: 'Client Portal', subtitle: '' }
 
     useEffect(() => {
         const h = (e) => { if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false) }
@@ -57,6 +76,17 @@ const ClientLayout = ({ theme, toggleTheme }) => {
         if (window.innerWidth <= 900) setMobileOpen(o => !o)
         else setCollapsed(c => !c)
     }
+
+    const handleLogout = () => {
+        authAPI.logout()
+        navigate('/client/login')
+    }
+
+    if (!userInfo) {
+        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>
+    }
+
+    const userInitials = userInfo.name ? userInfo.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'CL'
 
     return (
         <div className="client-shell">
@@ -101,13 +131,17 @@ const ClientLayout = ({ theme, toggleTheme }) => {
                         <span className="nav-icon"><Globe size={17} strokeWidth={1.8} /></span>
                         <span className="nav-label">Back to Site</span>
                     </button>
+                    <button className="client-nav-link" onClick={handleLogout} style={{ color: '#ef4444' }}>
+                        <span className="nav-icon"><LogOut size={17} strokeWidth={1.8} /></span>
+                        <span className="nav-label">Logout</span>
+                    </button>
                 </div>
 
                 <div className="client-sidebar-profile" onClick={() => handleNav('/client/profile')}>
-                    <div className="profile-avatar">{clientProfile.avatar}</div>
+                    <div className="profile-avatar">{userInitials}</div>
                     <div className="profile-info">
-                        <strong>{clientProfile.name}</strong>
-                        <span>{clientProfile.company}</span>
+                        <strong>{userInfo.name}</strong>
+                        <span>{userInfo.email}</span>
                     </div>
                     <Settings size={14} color="var(--c-muted)" />
                 </div>
@@ -146,7 +180,7 @@ const ClientLayout = ({ theme, toggleTheme }) => {
                             )}
                         </div>
 
-                        <div className="client-topbar-avatar" title="Profile">{clientProfile.avatar}</div>
+                        <div className="client-topbar-avatar" title="Profile">{userInitials}</div>
                     </div>
                 </header>
 

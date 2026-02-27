@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Pencil, Trash2, Plus, ArrowRight, CheckCircle, Clock, Circle, X } from 'lucide-react'
-import { mockTeam, mockTasks } from '../mockData'
+import { teamAPI } from '../../services/api'
 
 const RoleBadge = ({ r }) => {
     const m = { Developer: 'badge-blue', Designer: 'badge-purple', 'Project Manager': 'badge-cyan', SEO: 'badge-green' }
@@ -14,23 +14,80 @@ const TASK_COLS = [
 ]
 
 const Team = () => {
-    const [team, setTeam] = useState(mockTeam)
-    const [tasks, setTasks] = useState(mockTasks)
+    const [team, setTeam] = useState([])
+    const [tasks, setTasks] = useState([])
+    const [loading, setLoading] = useState(true)
     const [modal, setModal] = useState(false)
     const [editing, setEditing] = useState(null)
     const [form, setForm] = useState({ name: '', role: 'Developer', email: '', phone: '' })
     const [tab, setTab] = useState('team')
+    const [saving, setSaving] = useState(false)
+
+    useEffect(() => {
+        fetchTeam()
+    }, [])
+
+    const fetchTeam = async () => {
+        try {
+            setLoading(true)
+            const response = await teamAPI.getAll()
+            setTeam(response.users || [])
+        } catch (error) {
+            console.error('Failed to fetch team:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const openAdd = () => { setEditing(null); setForm({ name: '', role: 'Developer', email: '', phone: '' }); setModal(true) }
-    const openEdit = (m) => { setEditing(m.id); setForm({ name: m.name, role: m.role, email: m.email, phone: m.phone }); setModal(true) }
-    const save = () => {
-        if (!form.name.trim()) return
-        if (editing) setTeam(t => t.map(m => m.id === editing ? { ...m, ...form } : m))
-        else setTeam(t => [...t, { id: Date.now(), tasks: 0, joined: new Date().toISOString().split('T')[0], ...form }])
-        setModal(false)
+    const openEdit = (m) => { 
+        setEditing(m.id)
+        setForm({ 
+            name: m.name, 
+            role: m.role, 
+            email: m.email, 
+            phone: m.phone || '' 
+        })
+        setModal(true) 
     }
-    const remove = (id) => { if (confirm('Remove team member?')) setTeam(t => t.filter(m => m.id !== id)) }
+    const save = async () => {
+        if (!form.name.trim()) return
+        
+        try {
+            setSaving(true)
+            if (editing) {
+                await teamAPI.update(editing, form)
+            } else {
+                await teamAPI.create({
+                    ...form,
+                    password: 'defaultPassword123' // You may want to generate or ask for password
+                })
+            }
+            
+            await fetchTeam()
+            setModal(false)
+        } catch (error) {
+            console.error('Failed to save team member:', error)
+            alert(error.message || 'Failed to save team member')
+        } finally {
+            setSaving(false)
+        }
+    }
+    const remove = async (id) => { 
+        if (confirm('Remove team member?')) {
+            try {
+                await teamAPI.delete(id)
+                await fetchTeam()
+            } catch (error) {
+                console.error('Failed to remove team member:', error)
+            }
+        }
+    }
     const moveTask = (id, newStatus) => setTasks(ts => ts.map(t => t.id === id ? { ...t, status: newStatus } : t))
+
+    if (loading) {
+        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px', color: 'var(--admin-muted)' }}>Loading team...</div>
+    }
 
     return (
         <>
@@ -68,9 +125,9 @@ const Team = () => {
                                         </td>
                                         <td><RoleBadge r={m.role} /></td>
                                         <td style={{ color: 'var(--admin-muted)', fontSize: '0.82rem' }}>{m.email}</td>
-                                        <td style={{ color: 'var(--admin-muted)', fontSize: '0.82rem' }}>{m.phone}</td>
-                                        <td><strong>{m.tasks}</strong></td>
-                                        <td style={{ color: 'var(--admin-muted)', fontSize: '0.78rem' }}>{m.joined}</td>
+                                        <td style={{ color: 'var(--admin-muted)', fontSize: '0.82rem' }}>{m.phone || '—'}</td>
+                                        <td><strong>{m.taskCount || 0}</strong></td>
+                                        <td style={{ color: 'var(--admin-muted)', fontSize: '0.78rem' }}>{m.createdAt ? new Date(m.createdAt).toLocaleDateString('en-IN') : '—'}</td>
                                         <td>
                                             <div className="action-btns">
                                                 <button className="btn-icon" onClick={() => openEdit(m)} title="Edit"><Pencil size={14} /></button>

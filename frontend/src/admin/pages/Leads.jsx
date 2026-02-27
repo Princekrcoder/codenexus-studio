@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Pencil, Trash2, Plus, CheckCircle, FileText, X, Inbox, UserPlus, Eye, ThumbsUp } from 'lucide-react'
-import { mockLeads } from '../mockData'
+import { leadsAPI } from '../../services/api'
 
 const STATUSES = ['All', 'New', 'In Review', 'Converted']
 const SOURCES = ['All', 'Website', 'WhatsApp', 'Email']
@@ -12,24 +12,88 @@ const LeadBadge = ({ status }) => {
 }
 
 const Leads = () => {
-    const [leads, setLeads] = useState(mockLeads)
+    const [leads, setLeads] = useState([])
+    const [loading, setLoading] = useState(true)
     const [filter, setFilter] = useState('All')
     const [sourceFilter, setSourceFilter] = useState('All')
     const [modal, setModal] = useState(false)
     const [editing, setEditing] = useState(null)
     const [form, setForm] = useState(emptyForm)
     const [noteModal, setNoteModal] = useState(null)
+    const [saving, setSaving] = useState(false)
+
+    useEffect(() => {
+        fetchLeads()
+    }, [])
+
+    const fetchLeads = async () => {
+        try {
+            setLoading(true)
+            const response = await leadsAPI.getAll()
+            setLeads(response.leads || [])
+        } catch (error) {
+            console.error('Failed to fetch leads:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const openAdd = () => { setEditing(null); setForm(emptyForm); setModal(true) }
-    const openEdit = (l) => { setEditing(l.id); setForm({ name: l.name, email: l.email, phone: l.phone, source: l.source, service: l.service, status: l.status, notes: l.notes }); setModal(true) }
-    const save = () => {
-        if (!form.name.trim()) return
-        if (editing) setLeads(ls => ls.map(l => l.id === editing ? { ...l, ...form } : l))
-        else setLeads(ls => [...ls, { id: Date.now(), date: new Date().toISOString().split('T')[0], ...form }])
-        setModal(false)
+    const openEdit = (l) => { 
+        setEditing(l.id)
+        setForm({ 
+            name: l.name, 
+            email: l.email, 
+            phone: l.phone, 
+            source: l.source, 
+            service: l.service, 
+            status: l.status, 
+            notes: l.notes || '' 
+        })
+        setModal(true) 
     }
-    const remove = (id) => { if (confirm('Delete lead?')) setLeads(ls => ls.filter(l => l.id !== id)) }
-    const convert = (id) => setLeads(ls => ls.map(l => l.id === id ? { ...l, status: 'Converted' } : l))
+    const save = async () => {
+        if (!form.name.trim()) return
+        
+        try {
+            setSaving(true)
+            if (editing) {
+                await leadsAPI.update(editing, form)
+            } else {
+                await leadsAPI.create(form)
+            }
+            
+            await fetchLeads()
+            setModal(false)
+        } catch (error) {
+            console.error('Failed to save lead:', error)
+            alert(error.message || 'Failed to save lead')
+        } finally {
+            setSaving(false)
+        }
+    }
+    const remove = async (id) => { 
+        if (confirm('Delete lead?')) {
+            try {
+                await leadsAPI.delete(id)
+                await fetchLeads()
+            } catch (error) {
+                console.error('Failed to delete lead:', error)
+            }
+        }
+    }
+    const convert = async (id) => {
+        try {
+            await leadsAPI.convert(id)
+            await fetchLeads()
+        } catch (error) {
+            console.error('Failed to convert lead:', error)
+        }
+    }
+
+    if (loading) {
+        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px', color: 'var(--admin-muted)' }}>Loading leads...</div>
+    }
 
     const filtered = leads.filter(l => {
         const mSt = filter === 'All' || l.status === filter
@@ -95,10 +159,10 @@ const Leads = () => {
                                     <td><LeadBadge status={l.status} /></td>
                                     <td>
                                         <button className="btn-icon" onClick={() => setNoteModal(l)} title="View notes" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.78rem', color: 'var(--admin-muted)' }}>
-                                            <FileText size={13} /> {l.notes.length > 25 ? l.notes.slice(0, 25) + '…' : l.notes || '—'}
+                                            <FileText size={13} /> {(l.notes || '').length > 25 ? (l.notes || '').slice(0, 25) + '…' : l.notes || '—'}
                                         </button>
                                     </td>
-                                    <td style={{ color: 'var(--admin-muted)', fontSize: '0.8rem' }}>{l.date}</td>
+                                    <td style={{ color: 'var(--admin-muted)', fontSize: '0.8rem' }}>{l.createdAt ? new Date(l.createdAt).toLocaleDateString('en-IN') : '—'}</td>
                                     <td>
                                         <div className="action-btns">
                                             {l.status !== 'Converted' && <button className="btn-icon" onClick={() => convert(l.id)} title="Mark Converted" style={{ color: 'var(--admin-green)' }}><CheckCircle size={14} /></button>}

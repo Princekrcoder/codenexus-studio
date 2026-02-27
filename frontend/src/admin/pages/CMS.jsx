@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Pencil, Trash2, Plus, ToggleLeft, ToggleRight, FileText, Image, Star, Globe } from 'lucide-react'
-import { mockServices, mockPortfolio, mockTestimonials, mockBlog } from '../mockData'
 
 const TABS = [
     { key: 'services', label: 'Services', Icon: Globe },
@@ -11,10 +10,10 @@ const TABS = [
 
 const CMS = () => {
     const [tab, setTab] = useState('services')
-    const [services, setServices] = useState(mockServices || [{ id: 1, title: 'Website Design', desc: 'Professional modern websites', active: true }, { id: 2, title: 'Web App', desc: 'Custom web applications', active: true }, { id: 3, title: 'SEO', desc: 'Search engine optimization', active: false }])
-    const [portfolio, setPortfolio] = useState(mockPortfolio || [{ id: 1, title: 'TechStartup Landing', client: 'Ravi Sharma', category: 'Website', featured: true }, { id: 2, title: 'BusinessCo Web App', client: 'Neha Gupta', category: 'Web App', featured: false }])
-    const [testimonials, setTestimonials] = useState(mockTestimonials || [{ id: 1, name: 'Ravi Sharma', company: 'TechStartup', rating: 5, text: 'Excellent work!' }, { id: 2, name: 'Neha Gupta', company: 'BusinessCo', rating: 4, text: 'Great team, fast delivery.' }])
-    const [blog, setBlog] = useState(mockBlog || [{ id: 1, title: 'Top 5 Web Trends 2026', date: '2026-01-15', status: 'Published', views: 320 }, { id: 2, title: 'Why SEO Matters', date: '2025-12-20', status: 'Draft', views: 0 }])
+    const [services, setServices] = useState([{ id: 1, title: 'Website Design', desc: 'Professional modern websites', active: true }, { id: 2, title: 'Web App', desc: 'Custom web applications', active: true }, { id: 3, title: 'SEO', desc: 'Search engine optimization', active: false }])
+    const [portfolio, setPortfolio] = useState([{ id: 1, title: 'TechStartup Landing', client: 'Ravi Sharma', category: 'Website', featured: true }, { id: 2, title: 'BusinessCo Web App', client: 'Neha Gupta', category: 'Web App', featured: false }])
+    const [testimonials, setTestimonials] = useState([{ id: 1, name: 'Ravi Sharma', company: 'TechStartup', rating: 5, text: 'Excellent work!' }, { id: 2, name: 'Neha Gupta', company: 'BusinessCo', rating: 4, text: 'Great team, fast delivery.' }])
+    const [blog, setBlog] = useState([{ id: 1, title: 'Top 5 Web Trends 2026', date: '2026-01-15', status: 'Published', views: 320 }, { id: 2, title: 'Why SEO Matters', date: '2025-12-20', status: 'Draft', views: 0 }])
     const [editService, setEditService] = useState(null)
 
     const toggleService = (id) => setServices(s => s.map(sv => sv.id === id ? { ...sv, active: !sv.active } : sv))

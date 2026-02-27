@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Pencil, Trash2, Plus, List, Columns, ArrowRight, X, FolderKanban, Clock, Loader2, PackageCheck } from 'lucide-react'
-import { mockProjects } from '../mockData'
+import { projectsAPI } from '../../services/api'
 
 const STATUSES = ['All', 'Pending', 'In Progress', 'Delivered']
 const SERVICES = ['All', 'Website', 'Web App', 'SEO', 'Maintenance']
@@ -16,7 +16,8 @@ const ServiceBadge = ({ s }) => {
 }
 
 const Projects = () => {
-    const [projects, setProjects] = useState(mockProjects)
+    const [projects, setProjects] = useState([])
+    const [loading, setLoading] = useState(true)
     const [statusFilter, setStatus] = useState('All')
     const [serviceFilter, setService] = useState('All')
     const [search, setSearch] = useState('')
@@ -24,22 +25,96 @@ const Projects = () => {
     const [editing, setEditing] = useState(null)
     const [form, setForm] = useState(emptyForm)
     const [viewMode, setViewMode] = useState('list')
+    const [saving, setSaving] = useState(false)
+
+    useEffect(() => {
+        fetchProjects()
+    }, [])
+
+    const fetchProjects = async () => {
+        try {
+            setLoading(true)
+            const response = await projectsAPI.getAll()
+            setProjects(response.projects || [])
+        } catch (error) {
+            console.error('Failed to fetch projects:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const openAdd = () => { setEditing(null); setForm(emptyForm); setModal(true) }
-    const openEdit = (p) => { setEditing(p.id); setForm({ name: p.name, client: p.client, service: p.service, status: p.status, deadline: p.deadline, dev: p.dev, progress: p.progress }); setModal(true) }
-    const save = () => {
-        if (!form.name.trim()) return
-        if (editing) setProjects(ps => ps.map(p => p.id === editing ? { ...p, ...form, progress: Number(form.progress) } : p))
-        else setProjects(ps => [...ps, { id: Date.now(), ...form, progress: Number(form.progress) }])
-        setModal(false)
+    const openEdit = (p) => { 
+        setEditing(p.id)
+        setForm({ 
+            name: p.name, 
+            client: p.clientId || '', 
+            service: p.service, 
+            status: p.status, 
+            deadline: p.deadline ? p.deadline.split('T')[0] : '', 
+            dev: p.assignedTo || '', 
+            progress: p.progress || 0 
+        })
+        setModal(true) 
     }
-    const remove = (id) => { if (confirm('Delete project?')) setProjects(ps => ps.filter(p => p.id !== id)) }
-    const moveKanban = (id, newStatus) => setProjects(ps => ps.map(p => p.id === id ? { ...p, status: newStatus } : p))
+    const save = async () => {
+        if (!form.name.trim()) return
+        
+        try {
+            setSaving(true)
+            const projectData = {
+                name: form.name,
+                clientId: form.client,
+                service: form.service,
+                status: form.status,
+                deadline: form.deadline,
+                assignedTo: form.dev,
+                progress: Number(form.progress)
+            }
+            
+            if (editing) {
+                await projectsAPI.update(editing, projectData)
+            } else {
+                await projectsAPI.create(projectData)
+            }
+            
+            await fetchProjects()
+            setModal(false)
+        } catch (error) {
+            console.error('Failed to save project:', error)
+            alert(error.message || 'Failed to save project')
+        } finally {
+            setSaving(false)
+        }
+    }
+    const remove = async (id) => { 
+        if (confirm('Delete project?')) {
+            try {
+                await projectsAPI.delete(id)
+                await fetchProjects()
+            } catch (error) {
+                console.error('Failed to delete project:', error)
+            }
+        }
+    }
+    const moveKanban = async (id, newStatus) => {
+        try {
+            await projectsAPI.update(id, { status: newStatus })
+            await fetchProjects()
+        } catch (error) {
+            console.error('Failed to update project status:', error)
+        }
+    }
+
+    if (loading) {
+        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px', color: 'var(--admin-muted)' }}>Loading projects...</div>
+    }
 
     const filtered = projects.filter(p => {
         const mS = statusFilter === 'All' || p.status === statusFilter
         const mSv = serviceFilter === 'All' || p.service === serviceFilter
-        const mSr = p.name.toLowerCase().includes(search.toLowerCase()) || p.client.toLowerCase().includes(search.toLowerCase())
+        const clientName = p.Client?.name || ''
+        const mSr = p.name.toLowerCase().includes(search.toLowerCase()) || clientName.toLowerCase().includes(search.toLowerCase())
         return mS && mSv && mSr
     })
 
@@ -107,7 +182,8 @@ const Projects = () => {
                         const colProjects = projects.filter(p => p.status === col.key)
                             .filter(p => {
                                 const mSv = serviceFilter === 'All' || p.service === serviceFilter
-                                const mSr = p.name.toLowerCase().includes(search.toLowerCase()) || p.client.toLowerCase().includes(search.toLowerCase())
+                                const clientName = p.Client?.name || ''
+                                const mSr = p.name.toLowerCase().includes(search.toLowerCase()) || clientName.toLowerCase().includes(search.toLowerCase())
                                 return mSv && mSr
                             })
                         return (
@@ -123,14 +199,14 @@ const Projects = () => {
                                             <div className="kanban-card-title">{p.name}</div>
                                             <div className="kanban-card-meta">
                                                 <ServiceBadge s={p.service} />
-                                                <span>{p.dev.split(' ')[0] || '—'}</span>
-                                                <span>{p.deadline}</span>
+                                                <span>{(p.assignedTo || '—').split(' ')[0]}</span>
+                                                <span>{p.deadline ? new Date(p.deadline).toLocaleDateString('en-IN') : '—'}</span>
                                             </div>
                                             <div style={{ marginTop: 8 }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--admin-muted)', marginBottom: 4 }}>
-                                                    <span>{p.client}</span><span>{p.progress}%</span>
+                                                    <span>{p.Client?.name || '—'}</span><span>{p.progress || 0}%</span>
                                                 </div>
-                                                <div className="progress-bar"><div className="progress-fill" style={{ width: `${p.progress}%` }} /></div>
+                                                <div className="progress-bar"><div className="progress-fill" style={{ width: `${p.progress || 0}%` }} /></div>
                                             </div>
                                             <div style={{ display: 'flex', gap: 4, marginTop: 8, flexWrap: 'wrap' }}>
                                                 {KANDBAN_COLS.filter(c => c.key !== col.key).map(c => (
@@ -161,17 +237,17 @@ const Projects = () => {
                                 {filtered.map(p => (
                                     <tr key={p.id}>
                                         <td><strong style={{ fontSize: '0.875rem' }}>{p.name}</strong></td>
-                                        <td style={{ color: 'var(--admin-muted)', fontSize: '0.82rem' }}>{p.client}</td>
+                                        <td style={{ color: 'var(--admin-muted)', fontSize: '0.82rem' }}>{p.Client?.name || '—'}</td>
                                         <td><ServiceBadge s={p.service} /></td>
                                         <td>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 110 }}>
-                                                <div className="progress-bar" style={{ flex: 1 }}><div className="progress-fill" style={{ width: `${p.progress}%` }} /></div>
-                                                <span style={{ fontSize: '0.73rem', color: 'var(--admin-muted)', width: 28 }}>{p.progress}%</span>
+                                                <div className="progress-bar" style={{ flex: 1 }}><div className="progress-fill" style={{ width: `${p.progress || 0}%` }} /></div>
+                                                <span style={{ fontSize: '0.73rem', color: 'var(--admin-muted)', width: 28 }}>{p.progress || 0}%</span>
                                             </div>
                                         </td>
                                         <td><StatusBadge s={p.status} /></td>
-                                        <td style={{ color: 'var(--admin-muted)', fontSize: '0.8rem' }}>{p.deadline}</td>
-                                        <td style={{ fontSize: '0.85rem' }}>{p.dev}</td>
+                                        <td style={{ color: 'var(--admin-muted)', fontSize: '0.8rem' }}>{p.deadline ? new Date(p.deadline).toLocaleDateString('en-IN') : '—'}</td>
+                                        <td style={{ fontSize: '0.85rem' }}>{p.assignedTo || '—'}</td>
                                         <td>
                                             <div className="action-btns">
                                                 <button className="btn-icon" onClick={() => openEdit(p)} title="Edit"><Pencil size={14} /></button>

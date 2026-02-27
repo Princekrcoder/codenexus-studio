@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Eye, CheckCircle, X, FileText, Download, CreditCard, Receipt, TrendingUp, AlertCircle, CheckCheck, XCircle, Clock } from 'lucide-react'
-import { mockInvoices } from '../mockData'
+import { invoicesAPI } from '../../services/api'
 
 const StatusBadge = ({ s }) => {
     const m = { Paid: 'badge-green', Unpaid: 'badge-red', Partial: 'badge-yellow' }
@@ -8,16 +8,51 @@ const StatusBadge = ({ s }) => {
 }
 
 const Payments = () => {
-    const [invoices, setInvoices] = useState(mockInvoices)
+    const [invoices, setInvoices] = useState([])
+    const [loading, setLoading] = useState(true)
     const [filter, setFilter] = useState('All')
     const [detail, setDetail] = useState(null)
 
-    const markPaid = (id) => setInvoices(inv => inv.map(i => i.id === id ? { ...i, paid: i.amount, status: 'Paid' } : i))
+    useEffect(() => {
+        fetchInvoices()
+    }, [])
+
+    const fetchInvoices = async () => {
+        try {
+            setLoading(true)
+            const response = await invoicesAPI.getAll()
+            setInvoices(response.invoices || [])
+        } catch (error) {
+            console.error('Failed to fetch invoices:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const markPaid = async (id) => {
+        try {
+            const invoice = invoices.find(i => i.id === id)
+            if (!invoice) return
+            
+            await invoicesAPI.markAsPaid(id, {
+                amountPaid: invoice.amount - invoice.paidAmount,
+                paymentMode: 'UPI',
+                paymentDate: new Date().toISOString()
+            })
+            await fetchInvoices()
+        } catch (error) {
+            console.error('Failed to mark invoice as paid:', error)
+        }
+    }
+
+    if (loading) {
+        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px', color: 'var(--admin-muted)' }}>Loading invoices...</div>
+    }
 
     const filtered = invoices.filter(i => filter === 'All' || i.status === filter)
 
-    const total = invoices.reduce((s, i) => s + i.amount, 0)
-    const collected = invoices.reduce((s, i) => s + i.paid, 0)
+    const total = invoices.reduce((s, i) => s + (i.amount || 0), 0)
+    const collected = invoices.reduce((s, i) => s + (i.paidAmount || 0), 0)
     const outstanding = total - collected
     const paid2 = invoices.filter(i => i.status === 'Paid').length
     const unpaid = invoices.filter(i => i.status === 'Unpaid').length
@@ -64,15 +99,15 @@ const Payments = () => {
                             {filtered.length === 0 && <tr><td colSpan={10}><div className="admin-empty"><CreditCard size={40} strokeWidth={1.5} color="var(--admin-muted)" style={{ marginBottom: 10 }} /><p>No invoices found</p></div></td></tr>}
                             {filtered.map(i => (
                                 <tr key={i.id}>
-                                    <td><span style={{ color: 'var(--admin-primary)', fontWeight: 600, fontSize: '0.85rem' }}>{i.invoiceId}</span></td>
-                                    <td style={{ fontWeight: 600, fontSize: '0.875rem' }}>{i.client}</td>
-                                    <td style={{ color: 'var(--admin-muted)', fontSize: '0.8rem' }}>{i.project}</td>
-                                    <td><strong>₹{i.amount.toLocaleString('en-IN')}</strong></td>
-                                    <td style={{ color: 'var(--admin-green)' }}>₹{i.paid.toLocaleString('en-IN')}</td>
-                                    <td style={{ color: (i.amount - i.paid) > 0 ? 'var(--admin-red)' : 'var(--admin-green)' }}>₹{(i.amount - i.paid).toLocaleString('en-IN')}</td>
+                                    <td><span style={{ color: 'var(--admin-primary)', fontWeight: 600, fontSize: '0.85rem' }}>{i.invoiceNumber || `INV-${i.id}`}</span></td>
+                                    <td style={{ fontWeight: 600, fontSize: '0.875rem' }}>{i.Client?.name || '—'}</td>
+                                    <td style={{ color: 'var(--admin-muted)', fontSize: '0.8rem' }}>{i.Project?.name || '—'}</td>
+                                    <td><strong>₹{(i.amount || 0).toLocaleString('en-IN')}</strong></td>
+                                    <td style={{ color: 'var(--admin-green)' }}>₹{(i.paidAmount || 0).toLocaleString('en-IN')}</td>
+                                    <td style={{ color: ((i.amount || 0) - (i.paidAmount || 0)) > 0 ? 'var(--admin-red)' : 'var(--admin-green)' }}>₹{((i.amount || 0) - (i.paidAmount || 0)).toLocaleString('en-IN')}</td>
                                     <td><StatusBadge s={i.status} /></td>
-                                    <td><span className="badge badge-gray">{i.mode || '—'}</span></td>
-                                    <td style={{ color: 'var(--admin-muted)', fontSize: '0.78rem' }}>{i.date}</td>
+                                    <td><span className="badge badge-gray">{i.paymentMode || '—'}</span></td>
+                                    <td style={{ color: 'var(--admin-muted)', fontSize: '0.78rem' }}>{i.dueDate ? new Date(i.dueDate).toLocaleDateString('en-IN') : '—'}</td>
                                     <td>
                                         <div className="action-btns">
                                             <button className="btn-icon" onClick={() => setDetail(i)} title="View"><Eye size={14} /></button>
@@ -91,12 +126,21 @@ const Payments = () => {
                 <div className="admin-modal-overlay" onClick={() => setDetail(null)}>
                     <div className="admin-modal" onClick={e => e.stopPropagation()}>
                         <div className="admin-modal-header">
-                            <h3><FileText size={16} style={{ marginRight: 6, verticalAlign: 'middle' }} />{detail.invoiceId}</h3>
+                            <h3><FileText size={16} style={{ marginRight: 6, verticalAlign: 'middle' }} />{detail.invoiceNumber || `INV-${detail.id}`}</h3>
                             <button className="btn-icon" onClick={() => setDetail(null)}><X size={16} /></button>
                         </div>
                         <div className="admin-modal-body">
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                {[['Client', detail.client], ['Project', detail.project], ['Amount', `₹${detail.amount.toLocaleString('en-IN')}`], ['Paid', `₹${detail.paid.toLocaleString('en-IN')}`], ['Balance', `₹${(detail.amount - detail.paid).toLocaleString('en-IN')}`], ['Status', detail.status], ['Mode', detail.mode || '—'], ['Date', detail.date]].map(([k, v]) => (
+                                {[
+                                    ['Client', detail.Client?.name || '—'], 
+                                    ['Project', detail.Project?.name || '—'], 
+                                    ['Amount', `₹${(detail.amount || 0).toLocaleString('en-IN')}`], 
+                                    ['Paid', `₹${(detail.paidAmount || 0).toLocaleString('en-IN')}`], 
+                                    ['Balance', `₹${((detail.amount || 0) - (detail.paidAmount || 0)).toLocaleString('en-IN')}`], 
+                                    ['Status', detail.status], 
+                                    ['Mode', detail.paymentMode || '—'], 
+                                    ['Date', detail.dueDate ? new Date(detail.dueDate).toLocaleDateString('en-IN') : '—']
+                                ].map(([k, v]) => (
                                     <div key={k}>
                                         <div style={{ fontSize: '0.75rem', color: 'var(--admin-muted)', fontWeight: 600, marginBottom: 3 }}>{k}</div>
                                         <div style={{ fontSize: '0.9rem', color: 'var(--admin-text)', fontWeight: 600 }}>{v}</div>

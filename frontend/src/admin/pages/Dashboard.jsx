@@ -4,7 +4,7 @@ import {
     ArrowUp, ArrowDown, Plus, Zap, CreditCard, UserPlus,
     Globe, Activity, ArrowRight, RefreshCcw, CheckCircle2
 } from 'lucide-react'
-import { mockActivity, mockProjects, mockLeads, mockInvoices } from '../mockData'
+import { dashboardAPI, projectsAPI, leadsAPI } from '../../services/api'
 
 const mockStats = {
     totalClients: 14,
@@ -106,14 +106,14 @@ const BarChart = () => {
     )
 }
 
-const DonutChart = () => {
-    const paid = mockInvoices.reduce((s, i) => s + i.paid, 0)
-    const unpaid = mockInvoices.reduce((s, i) => s + (i.amount - i.paid), 0)
+const DonutChart = ({ dashboardData }) => {
+    const paid = dashboardData.revenue?.collected || 0
+    const unpaid = dashboardData.revenue?.outstanding || 0
     const total = paid + unpaid
-    const paidPct = Math.round((paid / total) * 100)
+    const paidPct = total > 0 ? Math.round((paid / total) * 100) : 0
     const r = 54, cx = 70, cy = 70, circ = 2 * Math.PI * r
-    const paidDash = (paid / total) * circ
-    const unpaidDash = (unpaid / total) * circ
+    const paidDash = total > 0 ? (paid / total) * circ : 0
+    const unpaidDash = total > 0 ? (unpaid / total) * circ : 0
 
     return (
         <div className="chart-card">
@@ -162,12 +162,105 @@ const quickActions = [
 ]
 
 const Dashboard = ({ navigate }) => {
+    const [dashboardData, setDashboardData] = useState(null)
+    const [recentProjects, setRecentProjects] = useState([])
+    const [recentLeads, setRecentLeads] = useState([])
+    const [activityFeed, setActivityFeed] = useState([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        fetchDashboardData()
+    }, [])
+
+    const fetchDashboardData = async () => {
+        try {
+            setLoading(true)
+            const [dashboard, projects, leads, activity] = await Promise.all([
+                dashboardAPI.getData(),
+                projectsAPI.getAll({ limit: 5 }),
+                leadsAPI.getAll({ limit: 5 }),
+                dashboardAPI.getActivityFeed({ limit: 10 })
+            ])
+
+            setDashboardData(dashboard.data)
+            setRecentProjects(projects.projects || [])
+            setRecentLeads(leads.leads || [])
+            setActivityFeed(activity.activities || [])
+        } catch (error) {
+            console.error('Failed to fetch dashboard data:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    if (loading) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+                <div style={{ fontSize: '1.2rem', color: 'var(--admin-muted)' }}>Loading dashboard...</div>
+            </div>
+        )
+    }
+
+    if (!dashboardData) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+                <div style={{ fontSize: '1.2rem', color: 'var(--admin-muted)' }}>Failed to load dashboard data</div>
+            </div>
+        )
+    }
+
     const stats = [
-        { label: 'Total Clients', value: mockStats.totalClients, Icon: Users, iconClass: 'blue', change: '+2 this month', up: true, spark: [30, 45, 35, 55, 40, 65, 50, 70, 60, 85, 75, 95], glowColor: 'rgba(99,102,241,0.12)' },
-        { label: 'Active Projects', value: mockStats.activeProjects, Icon: FolderKanban, iconClass: 'purple', change: '2 due soon', up: false, spark: [80, 65, 70, 55, 60, 50, 40, 55, 45, 60, 50, 65], glowColor: 'rgba(168,85,247,0.12)' },
-        { label: 'Monthly Revenue', value: 155000, Icon: TrendingUp, iconClass: 'green', change: '+18% vs last month', up: true, spark: [40, 50, 45, 60, 55, 70, 65, 80, 75, 90, 85, 100], glowColor: 'rgba(34,197,94,0.12)', prefix: '₹' },
-        { label: 'Pending Requests', value: mockStats.pendingRequests, Icon: Inbox, iconClass: 'orange', change: 'Needs attention', up: false, spark: [20, 35, 25, 40, 30, 45, 35, 50, 40, 30, 45, 35], glowColor: 'rgba(249,115,22,0.12)' },
-        { label: 'New Leads (Week)', value: mockStats.newLeadsWeek, Icon: BarChart3, iconClass: 'cyan', change: '+3 vs last week', up: true, spark: [20, 30, 25, 40, 30, 45, 40, 55, 45, 60, 55, 70], glowColor: 'rgba(6,182,212,0.12)' },
+        { 
+            label: 'Total Clients', 
+            value: dashboardData.clients?.total || 0, 
+            Icon: Users, 
+            iconClass: 'blue', 
+            change: '+2 this month', 
+            up: true, 
+            spark: [30, 45, 35, 55, 40, 65, 50, 70, 60, 85, 75, 95], 
+            glowColor: 'rgba(99,102,241,0.12)' 
+        },
+        { 
+            label: 'Active Projects', 
+            value: dashboardData.projects?.byStatus?.['In Progress'] || 0, 
+            Icon: FolderKanban, 
+            iconClass: 'purple', 
+            change: '2 due soon', 
+            up: false, 
+            spark: [80, 65, 70, 55, 60, 50, 40, 55, 45, 60, 50, 65], 
+            glowColor: 'rgba(168,85,247,0.12)' 
+        },
+        { 
+            label: 'Monthly Revenue', 
+            value: dashboardData.revenue?.collected || 0, 
+            Icon: TrendingUp, 
+            iconClass: 'green', 
+            change: '+18% vs last month', 
+            up: true, 
+            spark: [40, 50, 45, 60, 55, 70, 65, 80, 75, 90, 85, 100], 
+            glowColor: 'rgba(34,197,94,0.12)', 
+            prefix: '₹' 
+        },
+        { 
+            label: 'Pending Requests', 
+            value: dashboardData.projects?.byStatus?.['Pending'] || 0, 
+            Icon: Inbox, 
+            iconClass: 'orange', 
+            change: 'Needs attention', 
+            up: false, 
+            spark: [20, 35, 25, 40, 30, 45, 35, 50, 40, 30, 45, 35], 
+            glowColor: 'rgba(249,115,22,0.12)' 
+        },
+        { 
+            label: 'New Leads (Week)', 
+            value: dashboardData.leads?.byStatus?.['New'] || 0, 
+            Icon: BarChart3, 
+            iconClass: 'cyan', 
+            change: '+3 vs last week', 
+            up: true, 
+            spark: [20, 30, 25, 40, 30, 45, 40, 55, 45, 60, 55, 70], 
+            glowColor: 'rgba(6,182,212,0.12)' 
+        },
     ]
 
     return (
@@ -205,7 +298,7 @@ const Dashboard = ({ navigate }) => {
 
             {/* Charts */}
             <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
-                <BarChart /><DonutChart />
+                <BarChart /><DonutChart dashboardData={dashboardData} />
             </div>
 
             {/* Projects + Activity */}
@@ -222,10 +315,10 @@ const Dashboard = ({ navigate }) => {
                         <table className="admin-table">
                             <thead><tr><th>Project</th><th>Client</th><th>Status</th><th>Progress</th><th>Deadline</th></tr></thead>
                             <tbody>
-                                {mockProjects.map(p => (
+                                {recentProjects.length > 0 ? recentProjects.map(p => (
                                     <tr key={p.id}>
                                         <td><strong style={{ fontSize: '0.85rem' }}>{p.name}</strong></td>
-                                        <td style={{ color: 'var(--admin-muted)', fontSize: '0.82rem' }}>{p.client}</td>
+                                        <td style={{ color: 'var(--admin-muted)', fontSize: '0.82rem' }}>{p.Client?.name || 'N/A'}</td>
                                         <td><StatusBadge s={p.status} /></td>
                                         <td>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 110 }}>
@@ -233,9 +326,11 @@ const Dashboard = ({ navigate }) => {
                                                 <span style={{ fontSize: '0.73rem', color: 'var(--admin-muted)', width: 28 }}>{p.progress}%</span>
                                             </div>
                                         </td>
-                                        <td style={{ color: 'var(--admin-muted)', fontSize: '0.78rem' }}>{p.deadline}</td>
+                                        <td style={{ color: 'var(--admin-muted)', fontSize: '0.78rem' }}>{new Date(p.deadline).toLocaleDateString()}</td>
                                     </tr>
-                                ))}
+                                )) : (
+                                    <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--admin-muted)' }}>No projects found</td></tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -248,7 +343,7 @@ const Dashboard = ({ navigate }) => {
                         <span className="badge badge-green" style={{ fontSize: '0.68rem' }}>Live</span>
                     </div>
                     <div className="activity-feed">
-                        {mockActivity.map(a => (
+                        {activityFeed.length > 0 ? activityFeed.map(a => (
                             <div className="activity-item" key={a.id}>
                                 <div className={`activity-icon-wrap ${a.type}`}>
                                     {a.type === 'lead' && <UserPlus size={14} />}
@@ -263,7 +358,9 @@ const Dashboard = ({ navigate }) => {
                                 </div>
                                 <div className="activity-time">{a.time}</div>
                             </div>
-                        ))}
+                        )) : (
+                            <div style={{ textAlign: 'center', color: 'var(--admin-muted)', padding: '20px' }}>No recent activity</div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -273,7 +370,7 @@ const Dashboard = ({ navigate }) => {
                 <div className="admin-card-header">
                     <h3><Inbox size={16} style={{ marginRight: 6, verticalAlign: 'middle' }} />Latest Leads</h3>
                     <div style={{ display: 'flex', gap: 8 }}>
-                        <span className="badge badge-red">{mockLeads.filter(l => l.status === 'New').length} New</span>
+                        <span className="badge badge-red">{recentLeads.filter(l => l.status === 'New').length} New</span>
                         <button className="btn-ghost" style={{ fontSize: '0.78rem', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 4 }} onClick={() => navigate('/admin/leads')}>
                             View All <ArrowRight size={14} />
                         </button>
@@ -283,7 +380,7 @@ const Dashboard = ({ navigate }) => {
                     <table className="admin-table">
                         <thead><tr><th>Name</th><th>Service</th><th>Source</th><th>Status</th><th>Date</th></tr></thead>
                         <tbody>
-                            {mockLeads.map(l => (
+                            {recentLeads.length > 0 ? recentLeads.map(l => (
                                 <tr key={l.id}>
                                     <td>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -294,9 +391,11 @@ const Dashboard = ({ navigate }) => {
                                     <td><span className="badge badge-blue">{l.service}</span></td>
                                     <td><span className="badge badge-gray">{l.source}</span></td>
                                     <td><LeadBadge s={l.status} /></td>
-                                    <td style={{ color: 'var(--admin-muted)', fontSize: '0.78rem' }}>{l.date}</td>
+                                    <td style={{ color: 'var(--admin-muted)', fontSize: '0.78rem' }}>{new Date(l.createdAt).toLocaleDateString()}</td>
                                 </tr>
-                            ))}
+                            )) : (
+                                <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--admin-muted)' }}>No leads found</td></tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
