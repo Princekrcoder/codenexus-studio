@@ -1,38 +1,78 @@
 import jwt from 'jsonwebtoken';
+import { User } from '../models/index.js';
 
-// Mock users database
-const users = [
-    { id: 1, email: 'user@example.com', password: 'password123', role: 'user', name: 'Regular User' },
-    { id: 2, email: 'manager@example.com', password: 'password123', role: 'manager', name: 'Manager User' },
-    { id: 3, email: 'admin@example.com', password: 'password123', role: 'admin', name: 'Admin User' },
-    { id: 4, email: 'developer@example.com', password: 'password123', role: 'developer', name: 'Developer User' }
-];
-
-export const login = (req, res) => {
-    const { email, password } = req.body;
-
+export const register = async (req, res) => {
     try {
-        // Find user
-        const user = users.find(u => u.email === email);
+        const { name, email, password, role } = req.body;
 
-        if (!user) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+        // Check if user already exists
+        const existingUser = await User.findOne({ where: { email: email.toLowerCase() } });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: 'User already exists with this email' });
         }
 
-        // Check password (in a real app, use bcrypt)
-        if (user.password !== password) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+        // Create new user
+        const user = await User.create({
+            name,
+            email,
+            password,
+            role: role || 'Client'
+        });
+
+        // Generate token
+        const token = jwt.sign(
+            { id: user.id, role: user.role, email: user.email },
+            process.env.JWT_SECRET || 'fallback_secret_key',
+            { expiresIn: '7d' }
+        );
+
+        res.status(201).json({
+            success: true,
+            token,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ success: false, message: 'Server error during registration' });
+    }
+};
+
+export const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Find user
+        const user = await User.findOne({ where: { email: email.toLowerCase() } });
+
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
+
+        // Check password
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
+
+        // Check if user is active
+        if (user.status !== 'Active') {
+            return res.status(403).json({ success: false, message: 'Account is inactive' });
         }
 
         // Generate token
         const token = jwt.sign(
             { id: user.id, role: user.role, email: user.email },
             process.env.JWT_SECRET || 'fallback_secret_key',
-            { expiresIn: '1d' }
+            { expiresIn: '7d' }
         );
 
-        // Return user info and token
         res.json({
+            success: true,
             token,
             user: {
                 id: user.id,
@@ -43,6 +83,33 @@ export const login = (req, res) => {
         });
     } catch (error) {
         console.error('Login error:', error);
-        res.status(500).json({ message: 'Server error during login' });
+        res.status(500).json({ success: false, message: 'Server error during login' });
+    }
+};
+
+export const refreshToken = async (req, res) => {
+    try {
+        const { token } = req.body;
+
+        // Verify old token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_key');
+
+        // Find user
+        const user = await User.findByPk(decoded.id);
+        if (!user || user.status !== 'Active') {
+            return res.status(401).json({ success: false, message: 'Invalid token' });
+        }
+
+        // Generate new token
+        const newToken = jwt.sign(
+            { id: user.id, role: user.role, email: user.email },
+            process.env.JWT_SECRET || 'fallback_secret_key',
+            { expiresIn: '7d' }
+        );
+
+        res.json({ success: true, token: newToken });
+    } catch (error) {
+        console.error('Token refresh error:', error);
+        res.status(401).json({ success: false, message: 'Invalid or expired token' });
     }
 };
