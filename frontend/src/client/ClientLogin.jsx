@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import './ClientLayout.css'
+import { useAuth } from '../context/AuthContext'
 
 const ClientLogin = ({ theme, toggleTheme }) => {
     const [formData, setFormData] = useState({ email: '', password: '' })
@@ -8,6 +9,7 @@ const ClientLogin = ({ theme, toggleTheme }) => {
     const [loading, setLoading] = useState(false)
     const [errors, setErrors] = useState({})
     const navigate = useNavigate()
+    const { login, logout } = useAuth()
 
     const validate = () => {
         const newErrors = {}
@@ -32,9 +34,24 @@ const ClientLogin = ({ theme, toggleTheme }) => {
             return
         }
         setLoading(true)
-        await new Promise(res => setTimeout(res, 1200))
-        setLoading(false)
-        navigate('/client')
+
+        try {
+            const response = await login(formData.email, formData.password)
+            
+            // Check if user is a client
+            if (response.user.role !== 'Client') {
+                setErrors({ email: 'This portal is for clients only. Please use the main login page.' })
+                logout()
+                return
+            }
+            
+            // Navigate to client dashboard
+            navigate('/client')
+        } catch (error) {
+            setErrors({ email: error.message || 'Invalid email or password' })
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (

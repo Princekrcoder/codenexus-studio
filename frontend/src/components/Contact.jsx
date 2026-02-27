@@ -1,11 +1,46 @@
+import { useState } from 'react'
 import '../styles/Contact.css'
 import { FaLinkedinIn, FaGithub, FaInstagram } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { MdLocationOn } from "react-icons/md";
 import { HiOutlineMail } from "react-icons/hi";
 import { FiPhoneCall } from "react-icons/fi";
+import { contactAPI } from '../services/api'
 
 const Contact = () => {
+    const [formData, setFormData] = useState({ name: '', email: '', message: '' })
+    const [loading, setLoading] = useState(false)
+    const [success, setSuccess] = useState(false)
+    const [error, setError] = useState('')
+
+    const handleChange = (e) => {
+        const { name, value } = e.target
+        setFormData(prev => ({ ...prev, [name]: value }))
+        setError('')
+    }
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        
+        if (!formData.name || !formData.email || !formData.message) {
+            setError('Please fill in all fields')
+            return
+        }
+
+        setLoading(true)
+        setError('')
+        
+        try {
+            await contactAPI.submit(formData)
+            setSuccess(true)
+            setFormData({ name: '', email: '', message: '' })
+            setTimeout(() => setSuccess(false), 5000)
+        } catch (err) {
+            setError(err.message || 'Failed to send message. Please try again.')
+        } finally {
+            setLoading(false)
+        }
+    }
     return (
         <section className="contact-section" id="contact-form">
             <div className="contact-container">
@@ -104,24 +139,59 @@ const Contact = () => {
                         </div>
                     </div>
 
-                    <form className="contact-form" onSubmit={(e) => e.preventDefault()}>
+                    <form className="contact-form" onSubmit={handleSubmit}>
+                        {success && (
+                            <div style={{ padding: '12px', marginBottom: '16px', backgroundColor: '#10b981', color: 'white', borderRadius: '8px', textAlign: 'center' }}>
+                                Message sent successfully! We'll get back to you soon.
+                            </div>
+                        )}
+                        
+                        {error && (
+                            <div style={{ padding: '12px', marginBottom: '16px', backgroundColor: '#ef4444', color: 'white', borderRadius: '8px', textAlign: 'center' }}>
+                                {error}
+                            </div>
+                        )}
+
                         <div className="form-group">
                             <label>Your Name</label>
-                            <input type="text" className="form-input" placeholder="John Doe" />
+                            <input 
+                                type="text" 
+                                name="name"
+                                className="form-input" 
+                                placeholder="John Doe" 
+                                value={formData.name}
+                                onChange={handleChange}
+                                disabled={loading}
+                            />
                         </div>
 
                         <div className="form-group">
                             <label>Email Address</label>
-                            <input type="email" className="form-input" placeholder="john@example.com" />
+                            <input 
+                                type="email" 
+                                name="email"
+                                className="form-input" 
+                                placeholder="john@example.com" 
+                                value={formData.email}
+                                onChange={handleChange}
+                                disabled={loading}
+                            />
                         </div>
 
                         <div className="form-group">
                             <label>Message</label>
-                            <textarea className="form-textarea" placeholder="Tell us about your project..."></textarea>
+                            <textarea 
+                                name="message"
+                                className="form-textarea" 
+                                placeholder="Tell us about your project..."
+                                value={formData.message}
+                                onChange={handleChange}
+                                disabled={loading}
+                            ></textarea>
                         </div>
 
-                        <button type="submit" className="submit-btn">
-                            Send Message
+                        <button type="submit" className="submit-btn" disabled={loading}>
+                            {loading ? 'Sending...' : 'Send Message'}
                         </button>
                     </form>
 

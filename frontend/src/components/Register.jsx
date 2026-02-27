@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import '../styles/Register.css'
 import SEO from './SEO'
+import { authAPI } from '../services/api'
 
 const Register = ({ theme, toggleTheme }) => {
     const [formData, setFormData] = useState({ name: '', email: '', password: '', confirm: '' })
@@ -34,9 +35,22 @@ const Register = ({ theme, toggleTheme }) => {
         const validationErrors = validate()
         if (Object.keys(validationErrors).length > 0) { setErrors(validationErrors); return }
         setLoading(true)
-        await new Promise(res => setTimeout(res, 1500))
-        setLoading(false)
-        navigate('/login')
+        
+        try {
+            await authAPI.register({
+                name: formData.name,
+                email: formData.email,
+                password: formData.password,
+                role: 'Client' // Default role for new registrations
+            })
+            
+            // Navigate to login or dashboard based on your preference
+            navigate('/login')
+        } catch (error) {
+            setErrors({ email: error.message || 'Registration failed. Please try again.' })
+        } finally {
+            setLoading(false)
+        }
     }
 
     const EyeOpen = () => (

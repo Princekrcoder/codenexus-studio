@@ -1,130 +1,136 @@
-import {
-    FolderKanban, CreditCard, CalendarClock, MessageSquare,
-    TrendingUp, FileDown, RefreshCcw, TicketCheck
-} from 'lucide-react'
-import { clientProjects, clientInvoices, clientTickets, clientActivity } from '../clientMockData'
+import { useState, useEffect } from 'react'
+import { FolderKanban, TrendingUp, CreditCard, Clock } from 'lucide-react'
+import { projectsAPI, invoicesAPI, authAPI } from '../../services/api'
 
 const ClientDashboard = () => {
-    const activeProjects = clientProjects.filter(p => p.status !== 'Delivered').length
-    const totalDue = clientInvoices.reduce((s, i) => s + (i.amount - i.paid), 0)
-    const nextDeadline = clientProjects.filter(p => p.status !== 'Delivered').sort((a, b) => new Date(a.deadline) - new Date(b.deadline))[0]
-    const openTickets = clientTickets.filter(t => t.status !== 'Closed').length
+    const [loading, setLoading] = useState(true)
+    const [projects, setProjects] = useState([])
+    const [invoices, setInvoices] = useState([])
+    const [user, setUser] = useState(null)
 
-    const stats = [
-        { label: 'Active Projects', value: activeProjects, icon: FolderKanban, color: 'rgba(16, 185, 129, 0.12)', iconColor: '#10b981' },
-        { label: 'Pending Payment', value: `₹${totalDue.toLocaleString()}`, icon: CreditCard, color: 'rgba(249, 115, 22, 0.12)', iconColor: '#f97316' },
-        { label: 'Next Deadline', value: nextDeadline ? nextDeadline.deadline : '—', icon: CalendarClock, color: 'rgba(6, 182, 212, 0.12)', iconColor: '#06b6d4' },
-        { label: 'Open Tickets', value: openTickets, icon: MessageSquare, color: 'rgba(99, 102, 241, 0.12)', iconColor: '#6366f1' },
-    ]
+    useEffect(() => {
+        const currentUser = authAPI.getCurrentUser()
+        setUser(currentUser)
+        if (currentUser) {
+            fetchDashboardData()
+        }
+    }, [])
 
-    const activityIcons = {
-        payment: { Icon: CreditCard, cls: 'green' },
-        file: { Icon: FileDown, cls: 'cyan' },
-        project: { Icon: RefreshCcw, cls: 'blue' },
-        message: { Icon: TicketCheck, cls: 'orange' },
+    const fetchDashboardData = async () => {
+        try {
+            setLoading(true)
+            const [projectsRes, invoicesRes] = await Promise.all([
+                projectsAPI.getAll(),
+                invoicesAPI.getAll()
+            ])
+            setProjects(projectsRes.projects || [])
+            setInvoices(invoicesRes.invoices || [])
+        } catch (error) {
+            console.error('Failed to fetch dashboard data:', error)
+        } finally {
+            setLoading(false)
+        }
     }
+
+    if (loading) {
+        return (
+            <div className="c-card" style={{ padding: '3rem', textAlign: 'center' }}>
+                <p style={{ color: 'var(--c-muted)' }}>Loading dashboard...</p>
+            </div>
+        )
+    }
+
+    const activeProjects = projects.filter(p => p.status === 'In Progress')
+    const totalRevenue = invoices.reduce((sum, inv) => sum + inv.amount, 0)
+    const paidRevenue = invoices.reduce((sum, inv) => sum + inv.paid, 0)
+    const pendingRevenue = totalRevenue - paidRevenue
 
     return (
         <>
             {/* Stats */}
-            <div className="client-stats-grid">
-                {stats.map((s, i) => (
-                    <div className="client-stat-card" key={i}>
-                        <div className="client-stat-icon" style={{ background: s.color }}>
-                            <s.icon size={20} color={s.iconColor} />
-                        </div>
-                        <div className="client-stat-info">
-                            <h3>{s.value}</h3>
-                            <p>{s.label}</p>
-                        </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 20 }}>
+                <div className="c-card" style={{ padding: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                        <FolderKanban size={20} color="#6366f1" />
+                        <span style={{ fontSize: '0.75rem', color: 'var(--c-muted)', fontWeight: 600 }}>Active Projects</span>
                     </div>
-                ))}
+                    <p style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--c-text)' }}>{activeProjects.length}</p>
+                </div>
+                <div className="c-card" style={{ padding: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                        <TrendingUp size={20} color="#22c55e" />
+                        <span style={{ fontSize: '0.75rem', color: 'var(--c-muted)', fontWeight: 600 }}>Total Spent</span>
+                    </div>
+                    <p style={{ fontSize: '1.8rem', fontWeight: 800, color: '#22c55e' }}>₹{paidRevenue.toLocaleString('en-IN')}</p>
+                </div>
+                <div className="c-card" style={{ padding: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                        <CreditCard size={20} color="#f97316" />
+                        <span style={{ fontSize: '0.75rem', color: 'var(--c-muted)', fontWeight: 600 }}>Pending Payments</span>
+                    </div>
+                    <p style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f97316' }}>₹{pendingRevenue.toLocaleString('en-IN')}</p>
+                </div>
             </div>
 
-            <div className="c-grid-2">
-                {/* Project progress */}
-                <div className="client-card">
-                    <h3 className="c-section-title"><FolderKanban size={16} /> Project Progress</h3>
-                    {clientProjects.map(p => (
-                        <div key={p.id} style={{ marginBottom: 16 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                                <span style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--c-text)' }}>{p.name}</span>
-                                <span style={{ fontSize: '0.78rem', color: 'var(--c-muted)' }}>{p.progress}%</span>
-                            </div>
-                            <div className="c-progress-bar">
-                                <div className="c-progress-fill" style={{ width: `${p.progress}%` }} />
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                                <span className={`c-badge ${p.status === 'Delivered' ? 'c-badge-green' : 'c-badge-cyan'}`}>{p.status}</span>
-                                <span style={{ fontSize: '0.72rem', color: 'var(--c-muted)' }}>Due: {p.deadline}</span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Payment summary */}
-                <div className="client-card">
-                    <h3 className="c-section-title"><CreditCard size={16} /> Payment Summary</h3>
-                    {(() => {
-                        const totalAmount = clientInvoices.reduce((s, i) => s + i.amount, 0)
-                        const totalPaid = clientInvoices.reduce((s, i) => s + i.paid, 0)
-                        const paidPct = Math.round((totalPaid / totalAmount) * 100)
-                        return (
-                            <div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+            {/* Recent Projects */}
+            <div className="c-card" style={{ marginBottom: 20 }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--c-text)', marginBottom: 16 }}>Recent Projects</h3>
+                {projects.length === 0 ? (
+                    <p style={{ color: 'var(--c-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '2rem' }}>No projects yet</p>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {projects.slice(0, 5).map(p => (
+                            <div key={p.id} style={{ padding: 12, background: 'var(--c-bg-secondary)', borderRadius: 8 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8 }}>
                                     <div>
-                                        <div style={{ fontSize: '0.72rem', color: 'var(--c-muted)', marginBottom: 2 }}>Total Invoiced</div>
-                                        <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--c-text)' }}>₹{totalAmount.toLocaleString()}</div>
+                                        <p style={{ fontWeight: 600, color: 'var(--c-text)', marginBottom: 4 }}>{p.name}</p>
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--c-muted)' }}>{p.service}</p>
                                     </div>
-                                    <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontSize: '0.72rem', color: 'var(--c-muted)', marginBottom: 2 }}>Paid</div>
-                                        <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--c-primary)' }}>₹{totalPaid.toLocaleString()}</div>
+                                    <span className={`badge ${p.status === 'Delivered' ? 'badge-green' : p.status === 'In Progress' ? 'badge-blue' : 'badge-yellow'}`}>{p.status}</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <div style={{ flex: 1, height: 6, background: 'var(--c-border)', borderRadius: 3, overflow: 'hidden' }}>
+                                        <div style={{ width: `${p.progress}%`, height: '100%', background: '#6366f1' }} />
                                     </div>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--c-muted)', minWidth: 35 }}>{p.progress}%</span>
                                 </div>
-                                <div className="c-progress-bar" style={{ height: 12, marginBottom: 8 }}>
-                                    <div className="c-progress-fill" style={{ width: `${paidPct}%` }} />
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
-                                    <span style={{ color: 'var(--c-primary)', fontWeight: 600 }}>{paidPct}% Paid</span>
-                                    <span style={{ color: 'var(--c-orange)', fontWeight: 600 }}>₹{(totalAmount - totalPaid).toLocaleString()} Due</span>
-                                </div>
-                            </div>
-                        )
-                    })()}
-
-                    <div style={{ marginTop: 20 }}>
-                        <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--c-muted2)', marginBottom: 8 }}>Recent Invoices</div>
-                        {clientInvoices.slice(0, 3).map(inv => (
-                            <div key={inv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--c-border)' }}>
-                                <span style={{ fontSize: '0.8rem', color: 'var(--c-text)', fontWeight: 500 }}>{inv.invoiceId}</span>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--c-text)' }}>₹{inv.amount.toLocaleString()}</span>
-                                <span className={`c-badge ${inv.status === 'Paid' ? 'c-badge-green' : inv.status === 'Partial' ? 'c-badge-orange' : 'c-badge-red'}`}>{inv.status}</span>
                             </div>
                         ))}
                     </div>
-                </div>
+                )}
             </div>
 
-            {/* Activity feed */}
-            <div className="client-card" style={{ marginTop: 14 }}>
-                <h3 className="c-section-title"><TrendingUp size={16} /> Recent Activity</h3>
-                <div className="c-activity-feed">
-                    {clientActivity.map(a => {
-                        const ai = activityIcons[a.type] || activityIcons.project
-                        return (
-                            <div className="c-activity-item" key={a.id}>
-                                <div className={`c-activity-icon ${ai.cls}`}>
-                                    <ai.Icon size={15} />
-                                </div>
-                                <div className="c-activity-text">
-                                    <strong>{a.action}</strong>
-                                    <span>{a.detail}</span>
-                                </div>
-                                <span className="c-activity-time">{a.time}</span>
-                            </div>
-                        )
-                    })}
-                </div>
+            {/* Recent Invoices */}
+            <div className="c-card">
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--c-text)', marginBottom: 16 }}>Recent Invoices</h3>
+                {invoices.length === 0 ? (
+                    <p style={{ color: 'var(--c-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '2rem' }}>No invoices yet</p>
+                ) : (
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', fontSize: '0.85rem' }}>
+                            <thead>
+                                <tr style={{ borderBottom: '1px solid var(--c-border)' }}>
+                                    <th style={{ textAlign: 'left', padding: '8px 0', color: 'var(--c-muted)', fontWeight: 600 }}>Project</th>
+                                    <th style={{ textAlign: 'left', padding: '8px 0', color: 'var(--c-muted)', fontWeight: 600 }}>Amount</th>
+                                    <th style={{ textAlign: 'left', padding: '8px 0', color: 'var(--c-muted)', fontWeight: 600 }}>Status</th>
+                                    <th style={{ textAlign: 'left', padding: '8px 0', color: 'var(--c-muted)', fontWeight: 600 }}>Due Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {invoices.slice(0, 5).map(inv => (
+                                    <tr key={inv.id} style={{ borderBottom: '1px solid var(--c-border)' }}>
+                                        <td style={{ padding: '12px 0', color: 'var(--c-text)' }}>{inv.Project ? inv.Project.name : '—'}</td>
+                                        <td style={{ padding: '12px 0', fontWeight: 600, color: 'var(--c-text)' }}>₹{inv.amount.toLocaleString('en-IN')}</td>
+                                        <td style={{ padding: '12px 0' }}>
+                                            <span className={`badge ${inv.status === 'Paid' ? 'badge-green' : inv.status === 'Partial' ? 'badge-yellow' : 'badge-red'}`}>{inv.status}</span>
+                                        </td>
+                                        <td style={{ padding: '12px 0', color: 'var(--c-muted)' }}>{inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : '—'}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
         </>
     )

@@ -1,168 +1,217 @@
-import { useState } from 'react'
-import { Plus, X, Send } from 'lucide-react'
-import { clientTickets, clientProjects } from '../clientMockData'
-
-const STATUS_COLORS = { 'New': 'c-badge-blue', 'In Progress': 'c-badge-orange', 'Closed': 'c-badge-gray' }
-const PRIORITY_COLORS = { 'Low': 'c-badge-gray', 'Medium': 'c-badge-orange', 'High': 'c-badge-red' }
+import { useState, useEffect, useRef } from 'react'
+import { Send, User } from 'lucide-react'
+import { messagesAPI, authAPI } from '../../services/api'
 
 const ClientMessages = () => {
-    const [tickets, setTickets] = useState(clientTickets)
-    const [filter, setFilter] = useState('All')
-    const [selectedTicket, setSelectedTicket] = useState(null)
-    const [newMsg, setNewMsg] = useState('')
-    const [showCreate, setShowCreate] = useState(false)
-    const [newTicket, setNewTicket] = useState({ subject: '', project: clientProjects[0]?.name || '', priority: 'Medium', message: '' })
+    const [loading, setLoading] = useState(true)
+    const [messages, setMessages] = useState([])
+    const [newMessage, setNewMessage] = useState('')
+    const [sending, setSending] = useState(false)
+    const [user, setUser] = useState(null)
+    const messagesEndRef = useRef(null)
 
-    const FILTERS = ['All', 'New', 'In Progress', 'Closed']
-    const filtered = filter === 'All' ? tickets : tickets.filter(t => t.status === filter)
+    useEffect(() => {
+        const currentUser = authAPI.getCurrentUser()
+        setUser(currentUser)
+        fetchMessages()
+    }, [])
 
-    const sendMessage = () => {
-        if (!newMsg.trim() || !selectedTicket) return
-        const updated = tickets.map(t => {
-            if (t.id === selectedTicket.id) {
-                const newMessages = [...t.messages, { id: t.messages.length + 1, sender: 'client', text: newMsg, time: new Date().toLocaleString() }]
-                return { ...t, messages: newMessages, updated: new Date().toISOString().split('T')[0] }
-            }
-            return t
-        })
-        setTickets(updated)
-        setSelectedTicket(updated.find(t => t.id === selectedTicket.id))
-        setNewMsg('')
+    useEffect(() => {
+        scrollToBottom()
+    }, [messages])
+
+    const fetchMessages = async () => {
+        try {
+            setLoading(true)
+            const response = await messagesAPI.getAll()
+            setMessages(response.messages || [])
+        } catch (error) {
+            console.error('Failed to fetch messages:', error)
+        } finally {
+            setLoading(false)
+        }
     }
 
-    const createTicket = () => {
-        if (!newTicket.subject.trim() || !newTicket.message.trim()) return
-        const ticket = {
-            id: tickets.length + 1,
-            subject: newTicket.subject,
-            status: 'New',
-            priority: newTicket.priority,
-            project: newTicket.project,
-            created: new Date().toISOString().split('T')[0],
-            updated: new Date().toISOString().split('T')[0],
-            messages: [{ id: 1, sender: 'client', text: newTicket.message, time: new Date().toLocaleString() }]
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+
+    const handleSendMessage = async (e) => {
+        e.preventDefault()
+        if (!newMessage.trim() || sending) return
+
+        try {
+            setSending(true)
+            const response = await messagesAPI.create({
+                content: newMessage,
+                clientId: user?.id
+            })
+            
+            if (response.success) {
+                setMessages([response.message, ...messages])
+                setNewMessage('')
+            }
+        } catch (error) {
+            console.error('Failed to send message:', error)
+            alert('Failed to send message. Please try again.')
+        } finally {
+            setSending(false)
         }
-        setTickets([ticket, ...tickets])
-        setShowCreate(false)
-        setNewTicket({ subject: '', project: clientProjects[0]?.name || '', priority: 'Medium', message: '' })
-        setSelectedTicket(ticket)
+    }
+
+    if (loading) {
+        return (
+            <div className="c-card" style={{ padding: '3rem', textAlign: 'center' }}>
+                <p style={{ color: 'var(--c-muted)' }}>Loading messages...</p>
+            </div>
+        )
     }
 
     return (
-        <>
-            {/* Top bar */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
-                <div className="client-filter-bar" style={{ marginBottom: 0 }}>
-                    {FILTERS.map(f => (
-                        <button key={f} className={`c-filter-tab ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)}>{f}</button>
-                    ))}
-                </div>
-                <button className="c-btn-primary" onClick={() => setShowCreate(true)}>
-                    <Plus size={15} /> New Ticket
-                </button>
-            </div>
-
-            <div className="c-grid-2">
-                {/* Ticket list */}
-                <div className="c-ticket-list">
-                    {filtered.length === 0 && (
-                        <div className="client-empty"><p>No tickets found</p></div>
-                    )}
-                    {filtered.map(t => (
-                        <div key={t.id}
-                            className={`c-ticket-item ${selectedTicket?.id === t.id ? 'active-ticket' : ''}`}
-                            onClick={() => setSelectedTicket(t)}>
-                            <div className="c-ticket-header">
-                                <h4>{t.subject}</h4>
-                                <span className={`c-badge ${STATUS_COLORS[t.status]}`}>{t.status}</span>
-                            </div>
-                            <div className="c-ticket-meta">
-                                <span>{t.project}</span>
-                                <span>·</span>
-                                <span className={`c-badge ${PRIORITY_COLORS[t.priority]}`}>{t.priority}</span>
-                                <span>·</span>
-                                <span>{t.updated}</span>
-                            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 250px)' }}>
+            {/* Messages Container */}
+            <div className="c-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', marginBottom: 16 }}>
+                <div style={{
+                    flex: 1,
+                    overflowY: 'auto',
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column-reverse',
+                    gap: 16
+                }}>
+                    <div ref={messagesEndRef} />
+                    {messages.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--c-muted)' }}>
+                            <p style={{ fontSize: '0.9rem', marginBottom: 8 }}>No messages yet</p>
+                            <p style={{ fontSize: '0.8rem' }}>Start a conversation with the team</p>
                         </div>
-                    ))}
-                </div>
-
-                {/* Chat */}
-                <div className="client-card">
-                    {!selectedTicket ? (
-                        <div className="client-empty"><p>Select a ticket to view conversation</p></div>
                     ) : (
-                        <>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--c-text)' }}>{selectedTicket.subject}</h3>
-                                <span className={`c-badge ${STATUS_COLORS[selectedTicket.status]}`}>{selectedTicket.status}</span>
-                            </div>
-                            <p style={{ fontSize: '0.72rem', color: 'var(--c-muted)', marginBottom: 6 }}>
-                                {selectedTicket.project} · Created: {selectedTicket.created}
-                            </p>
-
-                            <div className="c-chat-area">
-                                {selectedTicket.messages.map(m => (
-                                    <div key={m.id}>
-                                        <div className={`c-chat-msg ${m.sender}`}>{m.text}</div>
-                                        <div className="c-chat-time" style={{ textAlign: m.sender === 'client' ? 'right' : 'left' }}>{m.time}</div>
+                        messages.map(msg => {
+                            const isOwnMessage = msg.senderId === user?.id
+                            return (
+                                <div
+                                    key={msg.id}
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: isOwnMessage ? 'flex-end' : 'flex-start',
+                                        gap: 10
+                                    }}
+                                >
+                                    {!isOwnMessage && (
+                                        <div style={{
+                                            width: 32,
+                                            height: 32,
+                                            borderRadius: '50%',
+                                            background: '#6366f1',
+                                            color: '#fff',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '0.75rem',
+                                            fontWeight: 600,
+                                            flexShrink: 0
+                                        }}>
+                                            {msg.Sender?.name?.slice(0, 2).toUpperCase() || <User size={16} />}
+                                        </div>
+                                    )}
+                                    <div style={{ maxWidth: '70%' }}>
+                                        {!isOwnMessage && (
+                                            <div style={{
+                                                fontSize: '0.75rem',
+                                                color: 'var(--c-muted)',
+                                                marginBottom: 4,
+                                                fontWeight: 600
+                                            }}>
+                                                {msg.Sender?.name || 'Team Member'}
+                                            </div>
+                                        )}
+                                        <div style={{
+                                            padding: '10px 14px',
+                                            borderRadius: 12,
+                                            background: isOwnMessage ? '#6366f1' : 'var(--c-bg-secondary)',
+                                            color: isOwnMessage ? '#fff' : 'var(--c-text)',
+                                            fontSize: '0.85rem',
+                                            lineHeight: 1.5,
+                                            wordWrap: 'break-word'
+                                        }}>
+                                            {msg.content}
+                                        </div>
+                                        <div style={{
+                                            fontSize: '0.7rem',
+                                            color: 'var(--c-muted)',
+                                            marginTop: 4,
+                                            textAlign: isOwnMessage ? 'right' : 'left'
+                                        }}>
+                                            {new Date(msg.createdAt).toLocaleString()}
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
-
-                            {selectedTicket.status !== 'Closed' && (
-                                <div className="c-chat-input-bar">
-                                    <input
-                                        placeholder="Type a message…"
-                                        value={newMsg}
-                                        onChange={e => setNewMsg(e.target.value)}
-                                        onKeyDown={e => e.key === 'Enter' && sendMessage()}
-                                    />
-                                    <button onClick={sendMessage}><Send size={15} /></button>
+                                    {isOwnMessage && (
+                                        <div style={{
+                                            width: 32,
+                                            height: 32,
+                                            borderRadius: '50%',
+                                            background: '#22c55e',
+                                            color: '#fff',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '0.75rem',
+                                            fontWeight: 600,
+                                            flexShrink: 0
+                                        }}>
+                                            {user?.name?.slice(0, 2).toUpperCase() || 'ME'}
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </>
+                            )
+                        })
                     )}
                 </div>
             </div>
 
-            {/* Create ticket modal */}
-            {showCreate && (
-                <div className="c-modal-overlay" onClick={() => setShowCreate(false)}>
-                    <div className="c-modal" onClick={e => e.stopPropagation()}>
-                        <div className="c-modal-header">
-                            <h3>New Support Ticket</h3>
-                            <button className="c-btn-icon" onClick={() => setShowCreate(false)}><X size={16} /></button>
-                        </div>
-                        <div className="c-form-group">
-                            <label>Subject</label>
-                            <input value={newTicket.subject} onChange={e => setNewTicket({ ...newTicket, subject: e.target.value })} placeholder="Brief description of your issue" />
-                        </div>
-                        <div className="c-form-group">
-                            <label>Project</label>
-                            <select value={newTicket.project} onChange={e => setNewTicket({ ...newTicket, project: e.target.value })}>
-                                {clientProjects.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
-                            </select>
-                        </div>
-                        <div className="c-form-group">
-                            <label>Priority</label>
-                            <select value={newTicket.priority} onChange={e => setNewTicket({ ...newTicket, priority: e.target.value })}>
-                                <option value="Low">Low</option>
-                                <option value="Medium">Medium</option>
-                                <option value="High">High</option>
-                            </select>
-                        </div>
-                        <div className="c-form-group">
-                            <label>Message</label>
-                            <textarea value={newTicket.message} onChange={e => setNewTicket({ ...newTicket, message: e.target.value })} placeholder="Describe your issue in detail…" />
-                        </div>
-                        <button className="c-btn-primary" onClick={createTicket} style={{ width: '100%', justifyContent: 'center' }}>
-                            <Send size={15} /> Submit Ticket
-                        </button>
-                    </div>
-                </div>
-            )}
-        </>
+            {/* Message Input */}
+            <div className="c-card" style={{ padding: 16 }}>
+                <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: 12 }}>
+                    <input
+                        type="text"
+                        placeholder="Type your message..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        disabled={sending}
+                        style={{
+                            flex: 1,
+                            padding: '0.6rem 1rem',
+                            background: 'var(--c-bg-secondary)',
+                            border: '1px solid var(--c-border)',
+                            borderRadius: 8,
+                            color: 'var(--c-text)',
+                            fontSize: '0.85rem',
+                            outline: 'none'
+                        }}
+                    />
+                    <button
+                        type="submit"
+                        disabled={!newMessage.trim() || sending}
+                        style={{
+                            padding: '0.6rem 1.2rem',
+                            background: newMessage.trim() && !sending ? '#6366f1' : 'var(--c-border)',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: 8,
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: newMessage.trim() && !sending ? 'pointer' : 'not-allowed',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            transition: 'background 0.2s'
+                        }}
+                    >
+                        <Send size={16} /> {sending ? 'Sending...' : 'Send'}
+                    </button>
+                </form>
+            </div>
+        </div>
     )
 }
 

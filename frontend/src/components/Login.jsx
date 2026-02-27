@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import '../styles/Login.css'
 import SEO from './SEO'
+import { useAuth } from '../context/AuthContext'
 
 const Login = ({ theme, toggleTheme }) => {
     const [formData, setFormData] = useState({ email: '', password: '' })
@@ -9,6 +10,7 @@ const Login = ({ theme, toggleTheme }) => {
     const [loading, setLoading] = useState(false)
     const [errors, setErrors] = useState({})
     const navigate = useNavigate()
+    const { login } = useAuth()
 
     const validate = () => {
         const newErrors = {}
@@ -25,13 +27,6 @@ const Login = ({ theme, toggleTheme }) => {
         if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
     }
 
-    const mockUsers = [
-        { email: 'user@example.com', password: 'password123', role: 'user', route: '/' },
-        { email: 'manager@example.com', password: 'password123', role: 'manager', route: '/manager' },
-        { email: 'admin@example.com', password: 'password123', role: 'admin', route: '/admin' },
-        { email: 'developer@example.com', password: 'password123', role: 'developer', route: '/' }
-    ]
-
     const handleSubmit = async (e) => {
         e.preventDefault()
         const validationErrors = validate()
@@ -41,21 +36,22 @@ const Login = ({ theme, toggleTheme }) => {
         }
         setLoading(true)
 
-        // Simulate API call
-        await new Promise(res => setTimeout(res, 1000))
-        setLoading(false)
-
-        const user = mockUsers.find(
-            u => u.email === formData.email && u.password === formData.password
-        )
-
-        if (user) {
-            // Store mock auth in local storage
-            localStorage.setItem('userRole', user.role)
-            localStorage.setItem('userEmail', user.email)
-            navigate(user.route)
-        } else {
-            setErrors({ email: 'Invalid email or password' })
+        try {
+            const response = await login(formData.email, formData.password)
+            
+            // Navigate based on role
+            const roleRoutes = {
+                'Admin': '/admin',
+                'Manager': '/manager',
+                'Developer': '/',
+                'Client': '/client'
+            }
+            
+            navigate(roleRoutes[response.user.role] || '/')
+        } catch (error) {
+            setErrors({ email: error.message || 'Invalid email or password' })
+        } finally {
+            setLoading(false)
         }
     }
 

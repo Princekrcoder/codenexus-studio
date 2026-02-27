@@ -1,73 +1,76 @@
-import { CheckCircle2 } from 'lucide-react'
-import { clientProjects, PROJECT_STAGES } from '../clientMockData'
+import { useState, useEffect } from 'react'
+import { projectsAPI } from '../../services/api'
 
 const ClientProjects = () => {
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {clientProjects.map(p => (
-                <div className="client-card" key={p.id}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10 }}>
-                        <div>
-                            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--c-text)' }}>{p.name}</h3>
-                            <p style={{ fontSize: '0.78rem', color: 'var(--c-muted)', marginTop: 3 }}>{p.description}</p>
-                        </div>
-                        <span className={`c-badge ${p.status === 'Delivered' ? 'c-badge-green' : 'c-badge-cyan'}`}>{p.status}</span>
-                    </div>
+    const [loading, setLoading] = useState(true)
+    const [projects, setProjects] = useState([])
 
-                    {/* Stepper */}
-                    <div className="c-stepper">
-                        {PROJECT_STAGES.map((stage, i) => {
-                            const isDone = i < p.stage
-                            const isCurrent = i === p.stage - 1 && p.status !== 'Delivered'
-                            return (
-                                <div key={stage} style={{ display: 'contents' }}>
-                                    <div className={`c-stepper-step ${isDone ? 'done' : ''} ${isCurrent ? 'current' : ''}`}>
-                                        <div className="c-stepper-dot">
-                                            {isDone ? <CheckCircle2 size={12} /> : (i + 1)}
-                                        </div>
-                                        <span>{stage}</span>
-                                    </div>
-                                    {i < PROJECT_STAGES.length - 1 && (
-                                        <div className={`c-stepper-line ${isDone && i < p.stage - 1 ? 'done' : ''}`} />
+    useEffect(() => {
+        fetchProjects()
+    }, [])
+
+    const fetchProjects = async () => {
+        try {
+            setLoading(true)
+            const response = await projectsAPI.getAll()
+            setProjects(response.projects || [])
+        } catch (error) {
+            console.error('Failed to fetch projects:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className="c-card" style={{ padding: '3rem', textAlign: 'center' }}>
+                <p style={{ color: 'var(--c-muted)' }}>Loading projects...</p>
+            </div>
+        )
+    }
+
+    return (
+        <>
+            {projects.length === 0 ? (
+                <div className="c-card" style={{ padding: '3rem', textAlign: 'center' }}>
+                    <p style={{ color: 'var(--c-muted)', fontSize: '0.9rem' }}>No projects found</p>
+                </div>
+            ) : (
+                <div style={{ display: 'grid', gap: 16 }}>
+                    {projects.map(p => (
+                        <div key={p.id} className="c-card">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 12 }}>
+                                <div>
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--c-text)', marginBottom: 6 }}>{p.name}</h3>
+                                    <p style={{ fontSize: '0.85rem', color: 'var(--c-muted)', marginBottom: 8 }}>{p.service}</p>
+                                    {p.description && (
+                                        <p style={{ fontSize: '0.85rem', color: 'var(--c-text)', marginBottom: 12 }}>{p.description}</p>
                                     )}
                                 </div>
-                            )
-                        })}
-                    </div>
+                                <span className={`badge ${p.status === 'Delivered' ? 'badge-green' : p.status === 'In Progress' ? 'badge-blue' : 'badge-yellow'}`}>{p.status}</span>
+                            </div>
+                            
+                            <div style={{ marginBottom: 12 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--c-muted)', fontWeight: 600 }}>Progress</span>
+                                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--c-text)' }}>{p.progress}%</span>
+                                </div>
+                                <div style={{ height: 8, background: 'var(--c-border)', borderRadius: 4, overflow: 'hidden' }}>
+                                    <div style={{ width: `${p.progress}%`, height: '100%', background: '#6366f1', transition: '0.3s' }} />
+                                </div>
+                            </div>
 
-                    {/* Progress */}
-                    <div style={{ marginTop: 8 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: '0.78rem' }}>
-                            <span style={{ color: 'var(--c-muted2)' }}>Progress</span>
-                            <span style={{ color: 'var(--c-primary)', fontWeight: 700 }}>{p.progress}%</span>
+                            {p.deadline && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--c-muted)' }}>
+                                    <span>Deadline:</span>
+                                    <span style={{ fontWeight: 600 }}>{new Date(p.deadline).toLocaleDateString()}</span>
+                                </div>
+                            )}
                         </div>
-                        <div className="c-progress-bar">
-                            <div className="c-progress-fill" style={{ width: `${p.progress}%` }} />
-                        </div>
-                    </div>
-
-                    {/* Meta */}
-                    <div style={{ display: 'flex', gap: 20, marginTop: 12, flexWrap: 'wrap' }}>
-                        <div style={{ fontSize: '0.75rem' }}>
-                            <span style={{ color: 'var(--c-muted)' }}>Service: </span>
-                            <span className="c-badge c-badge-blue">{p.service}</span>
-                        </div>
-                        <div style={{ fontSize: '0.75rem' }}>
-                            <span style={{ color: 'var(--c-muted)' }}>Started: </span>
-                            <span style={{ color: 'var(--c-text)', fontWeight: 500 }}>{p.startDate}</span>
-                        </div>
-                        <div style={{ fontSize: '0.75rem' }}>
-                            <span style={{ color: 'var(--c-muted)' }}>Deadline: </span>
-                            <span style={{ color: 'var(--c-text)', fontWeight: 500 }}>{p.deadline}</span>
-                        </div>
-                        <div style={{ fontSize: '0.75rem' }}>
-                            <span style={{ color: 'var(--c-muted)' }}>Developer: </span>
-                            <span style={{ color: 'var(--c-text)', fontWeight: 500 }}>{p.dev}</span>
-                        </div>
-                    </div>
+                    ))}
                 </div>
-            ))}
-        </div>
+            )}
+        </>
     )
 }
 

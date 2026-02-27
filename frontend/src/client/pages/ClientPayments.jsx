@@ -1,75 +1,105 @@
-import { Receipt, TrendingUp, AlertCircle, Download } from 'lucide-react'
-import { clientInvoices } from '../clientMockData'
+import { useState, useEffect } from 'react'
+import { Download } from 'lucide-react'
+import { invoicesAPI } from '../../services/api'
 
 const ClientPayments = () => {
-    const totalAmount = clientInvoices.reduce((s, i) => s + i.amount, 0)
-    const totalPaid = clientInvoices.reduce((s, i) => s + i.paid, 0)
-    const totalDue = totalAmount - totalPaid
+    const [loading, setLoading] = useState(true)
+    const [invoices, setInvoices] = useState([])
 
-    const stats = [
-        { label: 'Total Cost', value: `₹${totalAmount.toLocaleString()}`, icon: Receipt, color: 'rgba(99, 102, 241, 0.12)', iconColor: '#6366f1' },
-        { label: 'Paid', value: `₹${totalPaid.toLocaleString()}`, icon: TrendingUp, color: 'rgba(34, 197, 94, 0.12)', iconColor: '#22c55e' },
-        { label: 'Due', value: `₹${totalDue.toLocaleString()}`, icon: AlertCircle, color: 'rgba(249, 115, 22, 0.12)', iconColor: '#f97316' },
-    ]
+    useEffect(() => {
+        fetchInvoices()
+    }, [])
+
+    const fetchInvoices = async () => {
+        try {
+            setLoading(true)
+            const response = await invoicesAPI.getAll()
+            setInvoices(response.invoices || [])
+        } catch (error) {
+            console.error('Failed to fetch invoices:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className="c-card" style={{ padding: '3rem', textAlign: 'center' }}>
+                <p style={{ color: 'var(--c-muted)' }}>Loading payments...</p>
+            </div>
+        )
+    }
+
+    const totalAmount = invoices.reduce((sum, inv) => sum + inv.amount, 0)
+    const paidAmount = invoices.reduce((sum, inv) => sum + inv.paid, 0)
+    const pendingAmount = totalAmount - paidAmount
 
     return (
         <>
-            {/* Summary cards */}
-            <div className="client-stats-grid">
-                {stats.map((s, i) => (
-                    <div className="client-stat-card" key={i}>
-                        <div className="client-stat-icon" style={{ background: s.color }}>
-                            <s.icon size={20} color={s.iconColor} />
-                        </div>
-                        <div className="client-stat-info">
-                            <h3>{s.value}</h3>
-                            <p>{s.label}</p>
-                        </div>
-                    </div>
-                ))}
+            {/* Payment Summary */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 20 }}>
+                <div className="c-card" style={{ padding: 16 }}>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--c-muted)', marginBottom: 4 }}>Total Amount</p>
+                    <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--c-text)' }}>₹{totalAmount.toLocaleString('en-IN')}</p>
+                </div>
+                <div className="c-card" style={{ padding: 16 }}>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--c-muted)', marginBottom: 4 }}>Paid</p>
+                    <p style={{ fontSize: '1.5rem', fontWeight: 800, color: '#22c55e' }}>₹{paidAmount.toLocaleString('en-IN')}</p>
+                </div>
+                <div className="c-card" style={{ padding: 16 }}>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--c-muted)', marginBottom: 4 }}>Pending</p>
+                    <p style={{ fontSize: '1.5rem', fontWeight: 800, color: '#f97316' }}>₹{pendingAmount.toLocaleString('en-IN')}</p>
+                </div>
             </div>
 
-            {/* Invoice table */}
-            <div className="client-card">
-                <h3 className="c-section-title"><Receipt size={16} /> Invoices</h3>
-                <div className="client-table-wrap">
-                    <table className="client-table">
-                        <thead>
-                            <tr>
-                                <th>Invoice</th>
-                                <th>Project</th>
-                                <th>Amount</th>
-                                <th>Paid</th>
-                                <th>Due Date</th>
-                                <th>Status</th>
-                                <th>Mode</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {clientInvoices.map(inv => (
-                                <tr key={inv.id}>
-                                    <td><strong>{inv.invoiceId}</strong></td>
-                                    <td style={{ fontSize: '0.8rem' }}>{inv.project}</td>
-                                    <td style={{ fontWeight: 700 }}>₹{inv.amount.toLocaleString()}</td>
-                                    <td style={{ color: 'var(--c-primary)', fontWeight: 600 }}>₹{inv.paid.toLocaleString()}</td>
-                                    <td style={{ color: 'var(--c-muted)', fontSize: '0.8rem' }}>{inv.dueDate}</td>
-                                    <td>
-                                        <span className={`c-badge ${inv.status === 'Paid' ? 'c-badge-green' : inv.status === 'Partial' ? 'c-badge-orange' : 'c-badge-red'}`}>
-                                            {inv.status}
-                                        </span>
-                                    </td>
-                                    <td style={{ color: 'var(--c-muted)', fontSize: '0.78rem' }}>{inv.mode}</td>
-                                    <td>
-                                        <button className="c-btn-icon" title="Download PDF">
-                                            <Download size={14} />
-                                        </button>
-                                    </td>
+            {/* Invoices List */}
+            <div className="c-card">
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--c-text)', marginBottom: 16 }}>Payment History</h3>
+                {invoices.length === 0 ? (
+                    <p style={{ color: 'var(--c-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '2rem' }}>No invoices yet</p>
+                ) : (
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', fontSize: '0.85rem' }}>
+                            <thead>
+                                <tr style={{ borderBottom: '1px solid var(--c-border)' }}>
+                                    <th style={{ textAlign: 'left', padding: '8px 0', color: 'var(--c-muted)', fontWeight: 600 }}>Project</th>
+                                    <th style={{ textAlign: 'left', padding: '8px 0', color: 'var(--c-muted)', fontWeight: 600 }}>Amount</th>
+                                    <th style={{ textAlign: 'left', padding: '8px 0', color: 'var(--c-muted)', fontWeight: 600 }}>Paid</th>
+                                    <th style={{ textAlign: 'left', padding: '8px 0', color: 'var(--c-muted)', fontWeight: 600 }}>Balance</th>
+                                    <th style={{ textAlign: 'left', padding: '8px 0', color: 'var(--c-muted)', fontWeight: 600 }}>Status</th>
+                                    <th style={{ textAlign: 'left', padding: '8px 0', color: 'var(--c-muted)', fontWeight: 600 }}>Due Date</th>
+                                    <th style={{ textAlign: 'left', padding: '8px 0', color: 'var(--c-muted)', fontWeight: 600 }}>Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {invoices.map(inv => {
+                                    const balance = inv.amount - inv.paid
+                                    return (
+                                        <tr key={inv.id} style={{ borderBottom: '1px solid var(--c-border)' }}>
+                                            <td style={{ padding: '12px 0', color: 'var(--c-text)', fontWeight: 600 }}>{inv.Project ? inv.Project.name : '—'}</td>
+                                            <td style={{ padding: '12px 0', color: 'var(--c-text)' }}>₹{inv.amount.toLocaleString('en-IN')}</td>
+                                            <td style={{ padding: '12px 0', color: '#22c55e', fontWeight: 600 }}>₹{inv.paid.toLocaleString('en-IN')}</td>
+                                            <td style={{ padding: '12px 0', color: balance > 0 ? '#f97316' : '#22c55e', fontWeight: 600 }}>₹{balance.toLocaleString('en-IN')}</td>
+                                            <td style={{ padding: '12px 0' }}>
+                                                <span className={`badge ${inv.status === 'Paid' ? 'badge-green' : inv.status === 'Partial' ? 'badge-yellow' : 'badge-red'}`}>{inv.status}</span>
+                                            </td>
+                                            <td style={{ padding: '12px 0', color: 'var(--c-muted)' }}>{inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : '—'}</td>
+                                            <td style={{ padding: '12px 0' }}>
+                                                <button 
+                                                    className="client-icon-btn" 
+                                                    title="Download Invoice"
+                                                    style={{ padding: '6px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 4 }}
+                                                >
+                                                    <Download size={14} /> Download
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
         </>
     )
