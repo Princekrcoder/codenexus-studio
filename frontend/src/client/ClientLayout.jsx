@@ -4,8 +4,12 @@ import {
     LayoutDashboard, FolderKanban, FileDown, CreditCard, MessageSquare, User,
     Menu, Sun, Moon, Bell, ChevronRight, Globe, Settings, BarChart3, LogOut
 } from 'lucide-react'
+<<<<<<< HEAD
 import './ClientLayout.css'
 import { authAPI } from '../services/api'
+=======
+import '../styles/ClientLayout.css'
+>>>>>>> 284ba4f6126df7127df364123ba165668c199ff0
 
 import ClientDashboard from './pages/ClientDashboard'
 import ClientProjects from './pages/ClientProjects'

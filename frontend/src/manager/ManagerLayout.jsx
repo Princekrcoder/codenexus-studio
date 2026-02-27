@@ -7,8 +7,12 @@ import {
     ChevronDown, ChevronRight, Menu, Sun, Moon, Bell,
     Search, TrendingUp, AlertCircle, RefreshCcw
 } from 'lucide-react'
+<<<<<<< HEAD
 import './ManagerLayout.css'
 import { authAPI } from '../services/api'
+=======
+import '../styles/ManagerLayout.css'
+>>>>>>> 284ba4f6126df7127df364123ba165668c199ff0
 
 import ManagerDashboard from './pages/ManagerDashboard'
 import ManagerClients from './pages/ManagerClients'

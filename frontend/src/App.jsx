@@ -1,26 +1,35 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense, lazy } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import './styles/App.css'
 
 import SEO from "./components/SEO"
-import Login from './components/Login.jsx'
-import Register from './components/Register.jsx'
-import AdminLayout from './admin/AdminLayout.jsx'
-import ClientLogin from './client/ClientLogin.jsx'
-import ClientLayout from './client/ClientLayout.jsx'
-import ManagerLayout from './manager/ManagerLayout.jsx'
-
 import Navbar from './components/Navbar.jsx'
 import Hero from './components/Hero.jsx'
 import Services from './components/Services.jsx'
-import Trust from './components/Trust.jsx'
-import TechDashboard from './components/TechDashboard.jsx'
-import OurProcessTimeline from "./components/Process.jsx"
-import Portfolio from './components/Portfolio.jsx'
-import Testimonials from './components/Testimonials.jsx'
-import CTA from './components/CTA.jsx'
-import Contact from './components/Contact.jsx'
-import Footer from './components/Footer.jsx'
+
+// Lazy load portal routes
+const Login = lazy(() => import('./components/Login.jsx'))
+const Register = lazy(() => import('./components/Register.jsx'))
+const AdminLayout = lazy(() => import('./admin/AdminLayout.jsx'))
+const ClientLogin = lazy(() => import('./client/ClientLogin.jsx'))
+const ClientLayout = lazy(() => import('./client/ClientLayout.jsx'))
+const ManagerLayout = lazy(() => import('./manager/ManagerLayout.jsx'))
+
+// Lazy load below-the-fold components
+const Trust = lazy(() => import('./components/Trust.jsx'))
+const TechDashboard = lazy(() => import('./components/TechDashboard.jsx'))
+const OurProcessTimeline = lazy(() => import('./components/Process.jsx'))
+const Portfolio = lazy(() => import('./components/Portfolio.jsx'))
+const Testimonials = lazy(() => import('./components/Testimonials.jsx'))
+const CTA = lazy(() => import('./components/CTA.jsx'))
+const Contact = lazy(() => import('./components/Contact.jsx'))
+const Footer = lazy(() => import('./components/Footer.jsx'))
+
+const LoadingFallback = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+    Loading...
+  </div>
+)
 
 function App() {
   const [theme, setTheme] = useState('dark')
@@ -42,10 +51,9 @@ function App() {
 
   const HomePage = () => (
     <>
-      {/* SEO for Home Page */}
       <SEO
-        title="CodeNexus Studio | Web Development Company in Mohali (Punjab)"
-        description="CodeNexus Studio provides Web Development, Web Apps, E-commerce, Portfolio Websites and Tech Consulting in Mohali, Punjab. Serving India and global clients."
+        title="Top Web Development Agency in Mohali | CodeNexus Studio"
+        description="CodeNexus Studio builds custom React web applications, e-commerce stores, and portfolios. Best scalable tech solutions in Mohali, Punjab."
         canonical="https://codenexusstudio.vercel.app/"
         ogImage="/og-image.png"
       />
@@ -54,32 +62,38 @@ function App() {
         <div className="bg-blob blob-2"></div>
 
         <Navbar theme={theme} toggleTheme={toggleTheme} />
+        {/* Above the fold (loads instantly) */}
         <Hero />
         <Services />
-        <Trust />
-        <TechDashboard />
-        <Portfolio />
-        <Testimonials />
-        <CTA />
-        <OurProcessTimeline />
-        <Contact />
-        <Footer />
+
+        {/* Below the fold (lazy loaded for performance) */}
+        <Suspense fallback={<LoadingFallback />}>
+          <Trust />
+          <TechDashboard />
+          <Portfolio />
+          <Testimonials />
+          <CTA />
+          <OurProcessTimeline />
+          <Contact />
+          <Footer />
+        </Suspense>
       </div>
     </>
   )
 
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<Login theme={theme} toggleTheme={toggleTheme} />} />
-      <Route path="/register" element={<Register theme={theme} toggleTheme={toggleTheme} />} />
-      <Route path="/admin/*" element={<AdminLayout theme={theme} toggleTheme={toggleTheme} />} />
-      <Route path="/client/login" element={<ClientLogin theme={theme} toggleTheme={toggleTheme} />} />
-      <Route path="/client/*" element={<ClientLayout theme={theme} toggleTheme={toggleTheme} />} />
-      <Route path="/manager/*" element={<ManagerLayout theme={theme} toggleTheme={toggleTheme} />} />
-    </Routes>
+    <Suspense fallback={<div className="admin-shell"><LoadingFallback /></div>}>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<Login theme={theme} toggleTheme={toggleTheme} />} />
+        <Route path="/register" element={<Register theme={theme} toggleTheme={toggleTheme} />} />
+        <Route path="/admin/*" element={<AdminLayout theme={theme} toggleTheme={toggleTheme} />} />
+        <Route path="/client/login" element={<ClientLogin theme={theme} toggleTheme={toggleTheme} />} />
+        <Route path="/client/*" element={<ClientLayout theme={theme} toggleTheme={toggleTheme} />} />
+        <Route path="/manager/*" element={<ManagerLayout theme={theme} toggleTheme={toggleTheme} />} />
+      </Routes>
+    </Suspense>
   )
 }
 
 export default App
-

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './TechStack.css';
+import '../styles/TechStack.css';
 
 const techData = [
   {
@@ -42,7 +42,7 @@ const TechStack = () => {
       <div className="dashboard-wrapper">
         <header style={{ textAlign: 'center', marginBottom: '60px' }}>
           <span className="badge">Technical Arsenal</span>
-          <h1 className="main-title" style={{marginTop: '15px'}}>Our <span>Technology</span> Stack</h1>
+          <h1 className="main-title" style={{ marginTop: '15px' }}>Our <span>Technology</span> Stack</h1>
         </header>
 
         <div className="dashboard-card">
@@ -53,8 +53,8 @@ const TechStack = () => {
                 key={item.id}
                 className={`tab-btn ${activeTab === index ? 'active' : ''}`}
                 onClick={() => {
-                    setAnimate(false);
-                    setActiveTab(index);
+                  setAnimate(false);
+                  setActiveTab(index);
                 }}
               >
                 <div className="dot" />
@@ -68,19 +68,19 @@ const TechStack = () => {
             <div className={`display-content ${animate ? 'active-content' : ''}`}>
               <div className="display-header">
                 <h2>{techData[activeTab].title}</h2>
-                <p style={{color: 'var(--text-muted)', lineHeight: '1.6'}}>
-                    {techData[activeTab].desc}
+                <p style={{ color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                  {techData[activeTab].desc}
                 </p>
               </div>
 
               <div className="progress-box">
-                <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem'}}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                   <span>Proficiency</span>
-                  <span style={{color: 'var(--primary)'}}>{techData[activeTab].level}%</span>
+                  <span style={{ color: 'var(--primary)' }}>{techData[activeTab].level}%</span>
                 </div>
                 <div className="bar-bg">
-                  <div 
-                    className="bar-fill" 
+                  <div
+                    className="bar-fill"
                     style={{ width: `${techData[activeTab].level}%` }}
                   ></div>
                 </div>
