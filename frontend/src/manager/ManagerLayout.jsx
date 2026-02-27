@@ -8,6 +8,7 @@ import {
     Search, TrendingUp, AlertCircle, RefreshCcw
 } from 'lucide-react'
 import './ManagerLayout.css'
+import { authAPI } from '../services/api'
 
 import ManagerDashboard from './pages/ManagerDashboard'
 import ManagerClients from './pages/ManagerClients'
@@ -54,11 +55,32 @@ const ManagerLayout = ({ theme, toggleTheme }) => {
     const [mobileOpen, setMobileOpen] = useState(false)
     const [clientsOpen, setClientsOpen] = useState(false)
     const [notifOpen, setNotifOpen] = useState(false)
+    const [userInfo, setUserInfo] = useState(null)
     const navigate = useNavigate()
     const { pathname, search } = useLocation()
     const notifRef = useRef(null)
 
     const unreadCount = NOTIFICATIONS.filter(n => n.unread).length
+
+    useEffect(() => {
+        // Check if user is logged in and has valid token
+        const user = authAPI.getCurrentUser()
+        const isAuth = authAPI.isAuthenticated()
+        
+        if (!user || !isAuth) {
+            navigate('/login')
+            return
+        }
+        
+        // Check if user has manager role
+        if (user.role !== 'Manager') {
+            authAPI.logout()
+            navigate('/login')
+            return
+        }
+        
+        setUserInfo(user)
+    }, [navigate])
 
     useEffect(() => { setMobileOpen(false) }, [pathname])
 
@@ -83,6 +105,17 @@ const ManagerLayout = ({ theme, toggleTheme }) => {
     }
 
     const isParentActive = (children) => children?.some(c => isActive(c.path))
+
+    const handleLogout = () => {
+        authAPI.logout()
+        navigate('/login')
+    }
+
+    if (!userInfo) {
+        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>
+    }
+
+    const userInitials = userInfo.name ? userInfo.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'MG'
 
     return (
         <div className="manager-shell">
@@ -133,7 +166,7 @@ const ManagerLayout = ({ theme, toggleTheme }) => {
 
                 {/* Logout at bottom */}
                 <div className="m-sidebar-footer">
-                    <button className="m-nav-link m-logout-btn" onClick={() => navigate('/')}>
+                    <button className="m-nav-link m-logout-btn" onClick={handleLogout}>
                         <LogOut size={18} />
                         <span className="m-nav-label">Logout</span>
                     </button>
@@ -203,7 +236,7 @@ const ManagerLayout = ({ theme, toggleTheme }) => {
                             )}
                         </div>
 
-                        <div className="m-topbar-avatar">MG</div>
+                        <div className="m-topbar-avatar">{userInitials}</div>
                     </div>
                 </header>
 
