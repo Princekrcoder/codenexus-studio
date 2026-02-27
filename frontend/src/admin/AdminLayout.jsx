@@ -7,6 +7,7 @@ import {
     TrendingUp, AlertCircle, CheckCircle2, RefreshCcw, BarChart3
 } from 'lucide-react'
 import './AdminLayout.css'
+import { useAuth } from '../context/AuthContext'
 
 import Dashboard from './pages/Dashboard'
 import Clients from './pages/Clients'
@@ -58,9 +59,25 @@ const AdminLayout = ({ theme, toggleTheme }) => {
     const navigate = useNavigate()
     const location = useLocation()
     const notifRef = useRef(null)
+    const { user, logout: authLogout, isAuthenticated } = useAuth()
 
     const pageInfo = PAGE_TITLES[location.pathname] || { title: 'Admin', subtitle: '' }
     const unreadCount = NOTIFICATIONS.filter(n => n.unread).length
+
+    useEffect(() => {
+        // Check if user is logged in and has valid token
+        if (!user || !isAuthenticated) {
+            navigate('/login')
+            return
+        }
+        
+        // Check if user has admin role
+        if (user.role !== 'Admin') {
+            authLogout()
+            navigate('/login')
+            return
+        }
+    }, [user, isAuthenticated, navigate, authLogout])
 
     useEffect(() => {
         const h = (e) => { if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false) }
@@ -73,6 +90,17 @@ const AdminLayout = ({ theme, toggleTheme }) => {
         if (window.innerWidth <= 900) setMobileOpen(o => !o)
         else setCollapsed(c => !c)
     }
+
+    const handleLogout = () => {
+        authLogout()
+        navigate('/login')
+    }
+
+    if (!user) {
+        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>
+    }
+
+    const userInitials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'AD'
 
     return (
         <div className="admin-shell">
@@ -120,14 +148,18 @@ const AdminLayout = ({ theme, toggleTheme }) => {
                         <span className="nav-icon"><Globe size={17} strokeWidth={1.8} /></span>
                         <span className="nav-label">Back to Site</span>
                     </button>
+                    <button className="admin-nav-link" onClick={handleLogout} style={{ color: '#ef4444' }}>
+                        <span className="nav-icon"><LogOut size={17} strokeWidth={1.8} /></span>
+                        <span className="nav-label">Logout</span>
+                    </button>
                 </div>
 
                 {/* Profile */}
                 <div className="admin-sidebar-profile" onClick={() => handleNav('/admin/settings')}>
-                    <div className="profile-avatar">AD</div>
+                    <div className="profile-avatar">{userInitials}</div>
                     <div className="profile-info">
-                        <strong>Admin</strong>
-                        <span>Super Admin</span>
+                        <strong>{user.name || 'Admin'}</strong>
+                        <span>{user.role || 'Super Admin'}</span>
                     </div>
                     <Settings size={14} color="var(--admin-muted)" />
                 </div>
@@ -193,7 +225,7 @@ const AdminLayout = ({ theme, toggleTheme }) => {
                             )}
                         </div>
 
-                        <div className="admin-topbar-avatar" title="Admin Profile">AD</div>
+                        <div className="admin-topbar-avatar" title="Admin Profile">{userInitials}</div>
                     </div>
                 </header>
 

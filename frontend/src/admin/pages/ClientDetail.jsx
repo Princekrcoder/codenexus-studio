@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
     ArrowLeft, Building2, Mail, Phone, MapPin, Globe2, Hash, CalendarDays,
     FolderKanban, CreditCard, MessageSquare, StickyNote, Plus, PhoneCall,
     MessageCircle, Send, Clock, Lock, User
 } from 'lucide-react'
-import { mockClients, mockProjects, mockInvoices, mockCommunications } from '../mockData'
+import { clientsAPI, projectsAPI, invoicesAPI, communicationsAPI } from '../../services/api'
 
 const TABS = [
     { key: 'overview', label: 'Overview', Icon: User },
@@ -42,25 +42,77 @@ const ClientDetail = () => {
     const { id } = useParams()
     const navigate = useNavigate()
     const [tab, setTab] = useState('overview')
-    const [comms, setComms] = useState(mockCommunications)
+    const [client, setClient] = useState(null)
+    const [projects, setProjects] = useState([])
+    const [invoices, setInvoices] = useState([])
+    const [comms, setComms] = useState([])
+    const [loading, setLoading] = useState(true)
     const [newNote, setNewNote] = useState({ type: 'Note', message: '', internal: true })
 
-    const client = mockClients.find(c => c.id === Number(id))
-    if (!client) return <div className="admin-empty"><p>Client not found</p><button className="btn-primary" onClick={() => navigate('/admin/clients')}>← Back to Clients</button></div>
+    useEffect(() => {
+        fetchClientData()
+    }, [id])
 
-    const projects = mockProjects.filter(p => p.client === client.name)
-    const invoices = mockInvoices.filter(i => i.client === client.name)
-    const clientComms = comms.filter(c => c.clientId === client.id).sort((a, b) => new Date(b.date) - new Date(a.date))
-
-    const totalAmount = invoices.reduce((s, i) => s + i.amount, 0)
-    const totalPaid = invoices.reduce((s, i) => s + i.paid, 0)
-    const totalDue = totalAmount - totalPaid
-
-    const addNote = () => {
-        if (!newNote.message.trim()) return
-        setComms(prev => [...prev, { id: Date.now(), clientId: client.id, type: newNote.type, message: newNote.message, date: new Date().toISOString().split('T')[0], by: 'Admin', internal: newNote.internal }])
-        setNewNote({ type: 'Note', message: '', internal: true })
+    const fetchClientData = async () => {
+        try {
+            setLoading(true)
+            const [clientRes, projectsRes, invoicesRes, commsRes] = await Promise.all([
+                clientsAPI.getById(id),
+                projectsAPI.getAll({ clientId: id }),
+                invoicesAPI.getAll({ clientId: id }),
+                communicationsAPI.getAll({ clientId: id })
+            ])
+            
+            setClient(clientRes.client)
+            setProjects(projectsRes.projects || [])
+            setInvoices(invoicesRes.invoices || [])
+            setComms(commsRes.communications || [])
+        } catch (error) {
+            console.error('Failed to fetch client data:', error)
+        } finally {
+            setLoading(false)
+        }
     }
+
+    const addNote = async () => {
+        if (!newNote.message.trim()) return
+        
+        try {
+            await communicationsAPI.create({
+                clientId: id,
+                type: newNote.type,
+                message: newNote.message,
+                internal: newNote.internal
+            })
+            
+            setNewNote({ type: 'Note', message: '', internal: true })
+            
+            // Refresh communications
+            const commsRes = await communicationsAPI.getAll({ clientId: id })
+            setComms(commsRes.communications || [])
+        } catch (error) {
+            console.error('Failed to add communication:', error)
+        }
+    }
+
+    if (loading) {
+        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px', color: 'var(--admin-muted)' }}>Loading client details...</div>
+    }
+
+    if (!client) {
+        return (
+            <div className="admin-empty">
+                <p>Client not found</p>
+                <button className="btn-primary" onClick={() => navigate('/admin/clients')}>← Back to Clients</button>
+            </div>
+        )
+    }
+
+    const clientComms = comms.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+
+    const totalAmount = invoices.reduce((s, i) => s + (i.amount || 0), 0)
+    const totalPaid = invoices.reduce((s, i) => s + (i.paidAmount || 0), 0)
+    const totalDue = totalAmount - totalPaid
 
     return (
         <>
@@ -76,7 +128,7 @@ const ClientDetail = () => {
                             <h2 style={{ fontWeight: 800, fontSize: '1.3rem', color: 'var(--admin-text)' }}>{client.name}</h2>
                             <StatusBadge s={client.status} />
                         </div>
-                        <p style={{ fontSize: '0.82rem', color: 'var(--admin-muted)', marginTop: 2 }}>{client.company || '—'} · {client.industry || '—'} · Client since {client.joined}</p>
+                        <p style={{ fontSize: '0.82rem', color: 'var(--admin-muted)', marginTop: 2 }}>{client.company || '—'} · {client.industry || '—'} · Client since {client.createdAt ? new Date(client.createdAt).toLocaleDateString('en-IN') : '—'}</p>
                     </div>
                 </div>
             </div>
@@ -122,7 +174,7 @@ const ClientDetail = () => {
                             <InfoRow icon={Mail} label="Email" value={client.email} />
                             <InfoRow icon={Phone} label="Phone" value={client.phone} />
                             <InfoRow icon={MapPin} label="Address" value={client.address} />
-                            <InfoRow icon={CalendarDays} label="Since" value={client.joined} />
+                            <InfoRow icon={CalendarDays} label="Since" value={client.createdAt ? new Date(client.createdAt).toLocaleDateString('en-IN') : '—'} />
                         </div>
                         {/* Business info */}
                         <div className="admin-card" style={{ padding: '1.2rem' }}>
@@ -131,7 +183,7 @@ const ClientDetail = () => {
                             <InfoRow icon={Globe2} label="Website" value={client.website} />
                             <InfoRow icon={Hash} label="GST" value={client.gst} />
                             <InfoRow icon={FolderKanban} label="Industry" value={client.industry} />
-                            <InfoRow icon={CreditCard} label="Service" value={client.servicePreference} />
+                            <InfoRow icon={CreditCard} label="Service" value={Array.isArray(client.servicePreference) ? client.servicePreference.join(', ') : client.servicePreference} />
                         </div>
                     </div>
                 </>
@@ -146,7 +198,7 @@ const ClientDetail = () => {
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                                 <div>
                                     <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--admin-text)' }}>{p.name}</h4>
-                                    <p style={{ fontSize: '0.78rem', color: 'var(--admin-muted)', marginTop: 2 }}>{p.service} · Assigned: {p.dev}</p>
+                                    <p style={{ fontSize: '0.78rem', color: 'var(--admin-muted)', marginTop: 2 }}>{p.service} · Assigned: {p.assignedTo || '—'}</p>
                                 </div>
                                 <span className={`badge ${p.status === 'Delivered' ? 'badge-green' : p.status === 'In Progress' ? 'badge-cyan' : 'badge-yellow'}`}>{p.status}</span>
                             </div>
@@ -160,7 +212,7 @@ const ClientDetail = () => {
                                 </div>
                             </div>
                             <div style={{ display: 'flex', gap: 16, marginTop: 10, fontSize: '0.75rem' }}>
-                                <span style={{ color: 'var(--admin-muted)' }}>Deadline: <strong style={{ color: 'var(--admin-text)' }}>{p.deadline}</strong></span>
+                                <span style={{ color: 'var(--admin-muted)' }}>Deadline: <strong style={{ color: 'var(--admin-text)' }}>{p.deadline ? new Date(p.deadline).toLocaleDateString('en-IN') : '—'}</strong></span>
                             </div>
                         </div>
                     ))}
@@ -194,13 +246,13 @@ const ClientDetail = () => {
                                     {invoices.length === 0 && <tr><td colSpan={7}><div className="admin-empty"><p>No invoices</p></div></td></tr>}
                                     {invoices.map(inv => (
                                         <tr key={inv.id}>
-                                            <td><strong>{inv.invoiceId}</strong></td>
-                                            <td style={{ fontSize: '0.82rem' }}>{inv.project}</td>
-                                            <td style={{ fontWeight: 700 }}>₹{inv.amount.toLocaleString()}</td>
-                                            <td style={{ color: '#22c55e', fontWeight: 600 }}>₹{inv.paid.toLocaleString()}</td>
+                                            <td><strong>{inv.invoiceNumber || `INV-${inv.id}`}</strong></td>
+                                            <td style={{ fontSize: '0.82rem' }}>{inv.Project?.name || '—'}</td>
+                                            <td style={{ fontWeight: 700 }}>₹{(inv.amount || 0).toLocaleString()}</td>
+                                            <td style={{ color: '#22c55e', fontWeight: 600 }}>₹{(inv.paidAmount || 0).toLocaleString()}</td>
                                             <td><span className={`badge ${inv.status === 'Paid' ? 'badge-green' : inv.status === 'Partial' ? 'badge-yellow' : 'badge-red'}`}>{inv.status}</span></td>
-                                            <td style={{ color: 'var(--admin-muted)', fontSize: '0.8rem' }}>{inv.mode}</td>
-                                            <td style={{ color: 'var(--admin-muted)', fontSize: '0.8rem' }}>{inv.date}</td>
+                                            <td style={{ color: 'var(--admin-muted)', fontSize: '0.8rem' }}>{inv.paymentMode || '—'}</td>
+                                            <td style={{ color: 'var(--admin-muted)', fontSize: '0.8rem' }}>{inv.dueDate ? new Date(inv.dueDate).toLocaleDateString('en-IN') : '—'}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -250,7 +302,7 @@ const ClientDetail = () => {
                                             {c.followUp && <span className="badge badge-cyan" style={{ fontSize: '0.6rem', display: 'flex', alignItems: 'center', gap: 3 }}><Clock size={9} /> Follow-up: {c.followUp}</span>}
                                         </div>
                                         <p style={{ fontSize: '0.84rem', color: 'var(--admin-text)', lineHeight: 1.45 }}>{c.message}</p>
-                                        <div style={{ fontSize: '0.72rem', color: 'var(--admin-muted)', marginTop: 3 }}>{c.by} · {c.date}</div>
+                                        <div style={{ fontSize: '0.72rem', color: 'var(--admin-muted)', marginTop: 3 }}>{c.createdBy || 'Admin'} · {c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-IN') : '—'}</div>
                                     </div>
                                 </div>
                             ))}
