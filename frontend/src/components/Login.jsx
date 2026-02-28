@@ -38,7 +38,7 @@ const Login = ({ theme, toggleTheme }) => {
 
         try {
             const response = await login(formData.email, formData.password)
-            
+
             // Navigate based on role
             const roleRoutes = {
                 'Admin': '/admin',
@@ -46,7 +46,7 @@ const Login = ({ theme, toggleTheme }) => {
                 'Developer': '/',
                 'Client': '/client'
             }
-            
+
             navigate(roleRoutes[response.user.role] || '/')
         } catch (error) {
             setErrors({ email: error.message || 'Invalid email or password' })

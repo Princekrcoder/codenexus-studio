@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>CodeNexus Loader</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #050014;
+            font-family: Arial, sans-serif;
+        }
+
+        .loader {
+            text-align: center;
+        }
+
+        /* Logo */
+        .logo {
+            width: 380px;
+            /* adjust if needed */
+            max-width: 80vw;
+            filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.6));
+            animation: glow 2.5s ease-in-out infinite;
+        }
+
+        /* Glow pulse only */
+        @keyframes glow {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 18px rgba(139, 92, 246, 0.4));
+            }
+
+            50% {
+                filter: drop-shadow(0 0 35px rgba(139, 92, 246, 0.9));
+            }
+        }
+
+        /* Loading text */
+        .text {
+            margin-top: 14px;
+            font-size: 13px;
+            letter-spacing: 2px;
+            color: #c7bfff;
+        }
+
+        /* Dots animation */
+        .dots::after {
+            content: "";
+            animation: dots 1.4s steps(3, end) infinite;
+        }
+
+        @keyframes dots {
+            0% {
+                content: "";
+            }
+
+            33% {
+                content: ".";
+            }
+
+            66% {
+                content: "..";
+            }
+
+            100% {
+                content: "...";
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="loader">
+        <!-- CHANGE IMAGE PATH IF NEEDED -->
+        <img src="codenexus-logo.png" alt="CodeNexus" class="logo">
+        <div class="text">LOADING<span class="dots"></span></div>
+    </div>
+
+</body>
+
+</html>

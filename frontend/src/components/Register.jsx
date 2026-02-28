@@ -35,7 +35,7 @@ const Register = ({ theme, toggleTheme }) => {
         const validationErrors = validate()
         if (Object.keys(validationErrors).length > 0) { setErrors(validationErrors); return }
         setLoading(true)
-        
+
         try {
             await authAPI.register({
                 name: formData.name,
@@ -43,7 +43,7 @@ const Register = ({ theme, toggleTheme }) => {
                 password: formData.password,
                 role: 'Client' // Default role for new registrations
             })
-            
+
             // Navigate to login or dashboard based on your preference
             navigate('/login')
         } catch (error) {
