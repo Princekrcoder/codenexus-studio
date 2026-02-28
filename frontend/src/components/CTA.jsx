@@ -1,4 +1,4 @@
-
+import { Link } from 'react-router-dom'
 import '../styles/CTA.css'
 
 const CTA = () => {
@@ -13,11 +13,11 @@ const CTA = () => {
                     </p>
 
                     <div className="cta-actions">
-                        <a href="#start" className="cta-btn primary">
+                        <Link to="/login" className="cta-btn primary">
                             Start Your Project <span>🚀</span>
-                        </a>
-                        <a href="mailto:hello@codenexus.com" className="cta-btn secondary">
-                            Contact Us
+                        </Link>
+                        <a href="https://wa.me/918092701770?text=Hi%20CodeNexus%20Studio,%20I%20have%20a%20project%20in%20mind." target="_blank" rel="noreferrer" className="cta-btn secondary">
+                            WhatsApp Us
                         </a>
                     </div>
                 </div>

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import "../styles/Hero.css";
 
 import customLogo from "../assets/code_nexus-removebg-preview.png";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   const editorRef = useRef(null);
@@ -150,11 +151,11 @@ const Hero = () => {
             Turn your ideas into high-performance web applications.
           </p>
           <div className="btn-group">
-            <a href="#start" className="btn btn-primary">
+            <Link to="/login" className="btn btn-primary">
               Start Project
-            </a>
-            <a href="#github" className="btn btn-secondary">
-              View Github
+            </Link>
+            <a href="https://wa.me/918092701770?text=Hi%20CodeNexus%20Studio,%20I%20have%20a%20project%20in%20mind." target="_blank" rel="noreferrer" className="btn btn-secondary">
+              WhatsApp Us
             </a>
           </div>
         </div>

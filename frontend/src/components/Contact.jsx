@@ -21,7 +21,7 @@ const Contact = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        
+
         if (!formData.name || !formData.email || !formData.message) {
             setError('Please fill in all fields')
             return
@@ -29,7 +29,7 @@ const Contact = () => {
 
         setLoading(true)
         setError('')
-        
+
         try {
             await contactAPI.submit(formData)
             setSuccess(true)
@@ -63,7 +63,7 @@ const Contact = () => {
                             </div>
                             <div className="info-content">
                                 <h4>Email Us</h4>
-                                <p>codenexusstudio@gmail.com</p>
+                                <a href="mailto:codenexusstudio@gmail.com" style={{ color: 'inherit', textDecoration: 'none' }}>codenexusstudio@gmail.com</a>
                             </div>
                         </div>
 
@@ -74,7 +74,7 @@ const Contact = () => {
                             </div>
                             <div className="info-content">
                                 <h4>Call Us</h4>
-                                <p>+91 8092701770</p>
+                                <a href="tel:+918092701770" style={{ color: 'inherit', textDecoration: 'none' }}>+91 8092701770</a>
                             </div>
                         </div>
 
@@ -145,7 +145,7 @@ const Contact = () => {
                                 Message sent successfully! We'll get back to you soon.
                             </div>
                         )}
-                        
+
                         {error && (
                             <div style={{ padding: '12px', marginBottom: '16px', backgroundColor: '#ef4444', color: 'white', borderRadius: '8px', textAlign: 'center' }}>
                                 {error}
@@ -154,11 +154,11 @@ const Contact = () => {
 
                         <div className="form-group">
                             <label>Your Name</label>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 name="name"
-                                className="form-input" 
-                                placeholder="John Doe" 
+                                className="form-input"
+                                placeholder="John Doe"
                                 value={formData.name}
                                 onChange={handleChange}
                                 disabled={loading}
@@ -167,11 +167,11 @@ const Contact = () => {
 
                         <div className="form-group">
                             <label>Email Address</label>
-                            <input 
-                                type="email" 
+                            <input
+                                type="email"
                                 name="email"
-                                className="form-input" 
-                                placeholder="john@example.com" 
+                                className="form-input"
+                                placeholder="john@example.com"
                                 value={formData.email}
                                 onChange={handleChange}
                                 disabled={loading}
@@ -180,9 +180,9 @@ const Contact = () => {
 
                         <div className="form-group">
                             <label>Message</label>
-                            <textarea 
+                            <textarea
                                 name="message"
-                                className="form-textarea" 
+                                className="form-textarea"
                                 placeholder="Tell us about your project..."
                                 value={formData.message}
                                 onChange={handleChange}
