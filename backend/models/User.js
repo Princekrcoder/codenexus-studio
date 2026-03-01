@@ -1,6 +1,7 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const User = sequelize.define('User', {
     id: {
@@ -39,6 +40,12 @@ const User = sequelize.define('User', {
     tasksCount: {
         type: DataTypes.INTEGER,
         defaultValue: 0
+    },
+    resetPasswordToken: {
+        type: DataTypes.STRING
+    },
+    resetPasswordExpire: {
+        type: DataTypes.DATE
     }
 }, {
     tableName: 'users',
@@ -65,8 +72,25 @@ const User = sequelize.define('User', {
 });
 
 // Instance method to compare password
-User.prototype.comparePassword = async function(candidatePassword) {
+User.prototype.comparePassword = async function (candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Generate and hash password token
+User.prototype.getResetPasswordToken = function () {
+    // Generate token
+    const resetToken = crypto.randomBytes(20).toString('hex');
+
+    // Hash token and set to resetPasswordToken field
+    this.resetPasswordToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
+
+    // Set expire to 10 minutes
+    this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+    return resetToken;
 };
 
 export default User;

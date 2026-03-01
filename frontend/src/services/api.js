@@ -9,7 +9,7 @@ const getAuthToken = () => {
 // Helper function to make API requests with automatic token refresh
 const apiRequest = async (endpoint, options = {}) => {
     const token = getAuthToken();
-    
+
     const config = {
         ...options,
         headers: {
@@ -21,7 +21,7 @@ const apiRequest = async (endpoint, options = {}) => {
 
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-        
+
         // Handle 401 Unauthorized - token might be expired
         if (response.status === 401 && token) {
             // Clear auth and redirect to login
@@ -29,7 +29,7 @@ const apiRequest = async (endpoint, options = {}) => {
             localStorage.removeItem('user');
             localStorage.removeItem('userRole');
             localStorage.removeItem('userEmail');
-            
+
             // Redirect based on current path
             const currentPath = window.location.pathname;
             if (currentPath.startsWith('/client')) {
@@ -97,6 +97,20 @@ export const authAPI = {
         const token = getAuthToken();
         const user = localStorage.getItem('user');
         return !!(token && user);
+    },
+
+    forgotPassword: async (email) => {
+        return await apiRequest('/auth/forgot-password', {
+            method: 'POST',
+            body: JSON.stringify({ email }),
+        });
+    },
+
+    resetPassword: async (token, password) => {
+        return await apiRequest(`/auth/reset-password/${token}`, {
+            method: 'PUT',
+            body: JSON.stringify({ password }),
+        });
     },
 };
 

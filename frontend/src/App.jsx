@@ -10,6 +10,8 @@ import Services from './components/Services.jsx'
 // Lazy load portal routes
 const Login = lazy(() => import('./components/Login.jsx'))
 const Register = lazy(() => import('./components/Register.jsx'))
+const ForgotPassword = lazy(() => import('./components/ForgotPassword.jsx'))
+const ResetPassword = lazy(() => import('./components/ResetPassword.jsx'))
 const AdminLayout = lazy(() => import('./admin/AdminLayout.jsx'))
 const ClientLogin = lazy(() => import('./client/ClientLogin.jsx'))
 const ClientLayout = lazy(() => import('./client/ClientLayout.jsx'))
@@ -87,6 +89,8 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login theme={theme} toggleTheme={toggleTheme} />} />
         <Route path="/register" element={<Register theme={theme} toggleTheme={toggleTheme} />} />
+        <Route path="/forgot-password" element={<ForgotPassword theme={theme} toggleTheme={toggleTheme} />} />
+        <Route path="/reset-password/:token" element={<ResetPassword theme={theme} toggleTheme={toggleTheme} />} />
         <Route path="/admin/*" element={<AdminLayout theme={theme} toggleTheme={toggleTheme} />} />
         <Route path="/client/login" element={<ClientLogin theme={theme} toggleTheme={toggleTheme} />} />
         <Route path="/client/*" element={<ClientLayout theme={theme} toggleTheme={toggleTheme} />} />

@@ -150,7 +150,7 @@ const Login = ({ theme, toggleTheme }) => {
                                 <label className="remember-label">
                                     <input type="checkbox" id="remember" /> Remember me
                                 </label>
-                                <a href="#" className="forgot-link">Forgot password?</a>
+                                <Link to="/forgot-password" className="forgot-link">Forgot password?</Link>
                             </div>
 
                             {/* Submit */}
