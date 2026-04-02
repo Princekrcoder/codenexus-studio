@@ -2,199 +2,287 @@
    PROCESS SECTION STYLES
  ========================= */
 
-.process-wrapper {
-    color: var(--text-main);
-    position: relative;
-    /* Allow the global bg-blob or add specific background here if needed */
+:root {
+  --p-surface-bright: #2c2c2c;
+  --p-surface-container: #1a1919;
+  --p-outline-var: rgba(73, 72, 71, 0.3);
+  --p-text: #ffffff;
+  --p-text-var: #adaaaa;
+
+  --p-primary: #87adff;
+  --p-primary-dim: rgba(0, 111, 240, 0.15);
+  --p-primary-fixed: #6f9fff;
+  --p-primary-fixed-dim: rgba(111, 159, 255, 0.15);
+  
+  --p-secondary: #bd82ff;
+  --p-secondary-dim: rgba(151, 76, 233, 0.15);
+  
+  --p-tertiary: #feb7ff;
+  --p-tertiary-dim: rgba(236, 148, 240, 0.15);
+  
+  --p-error: #ff716c;
+  --p-error-dim: rgba(215, 56, 59, 0.15);
 }
 
-/* Specific glows for this section if desired, strictly scoped or removed if global blobs suffice.
-   User bad 'body::before' so keeping it might double up.
-   Commenting out strictly body glows to avoid double background issues vs App.jsx blobs.
-   If specific glows are needed, they should be on .process-wrapper::before/after with absolute positioning.
-*/
-
-/*
-.process-wrapper::before {
-  content: "";
-  position: absolute;
-  top: -10%; left: -10%;
-  width: 40%; height: 40%;
-  background: radial-gradient(circle, rgba(112, 0, 255, 0.15), transparent 70%);
-  z-index: -1;
-  pointer-events: none;
-}
-.process-wrapper::after {
-  content: "";
-  position: absolute;
-  bottom: -10%; right: -10%;
-  width: 45%; height: 45%;
-  background: radial-gradient(circle, rgba(0, 242, 255, 0.12), transparent 70%);
-  z-index: -1;
-  pointer-events: none;
-}
-*/
-
-.process-container {
-    max-width: 1100px;
-    margin: 100px auto;
-    padding: 0 20px;
+.p-wrapper {
+  color: var(--p-text);
+  position: relative;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 80px 24px;
 }
 
-.process-title {
-    text-align: center;
-    font-family: 'Poppins', sans-serif;
-    font-size: 3rem;
-    font-weight: 800;
-    margin-bottom: 80px;
-    background: linear-gradient(to bottom, var(--text-main) 30%, var(--text-muted));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+/* Header Section */
+.p-header-section {
+  max-width: 768px;
+  margin-bottom: 80px;
 }
 
-.process-subtitle {
-    text-align: center;
-    max-width: 720px;
-    margin: -55px auto 70px;
-    color: var(--text-dim);
-    font-size: 1rem;
-    line-height: 1.7;
+.p-workflow-tag {
+  display: inline-block;
+  padding: 4px 16px;
+  border-radius: 9999px;
+  background: rgba(104, 7, 186, 0.2);
+  color: var(--p-secondary);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  border: 1px solid rgba(189, 130, 255, 0.2);
+  font-weight: 600;
 }
 
-.process-timeline {
-    position: relative;
+.p-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: #fff;
+  margin-bottom: 24px;
 }
 
-/* Glowing vertical line */
-.process-timeline::before {
-    content: "";
-    position: absolute;
-    left: 50%;
-    width: 2px;
-    height: 100%;
-    background: linear-gradient(to bottom,
-            transparent,
-            var(--accent-cyan) 15%,
-            var(--accent) 85%,
-            /* --accent-purple used in original, mapping to --accent might be better? or keep if defined */
-            transparent);
-    transform: translateX(-50%);
+@media (min-width: 768px) {
+  .p-title {
+    font-size: 4.5rem;
+  }
 }
 
-/* Note: --accent-purple was local. Global is --accent (#a855f7). I should probably use var(--accent) or define --accent-purple in index.css if distinct.
-   Process: #7000ff (purple) vs Global: #a855f7 (lighter purple).
-   I'll map it to var(--primary) or var(--accent) for consistency, or add --accent-purple to index.css if strictly needed.
-   Let's assume consistency is better: use var(--primary) (#6366f1) or var(--accent) (#a855f7). 
-   The user code had #7000ff. That's close to primary.
-   Let's stick to the variables available or use the hex code if unique.
-   I'll use var(--accent) for now.
-*/
-
-.process-timeline-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    margin-bottom: 100px;
-    opacity: 0;
-    transform: translateY(50px);
-    transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1);
-    position: relative;
+.p-subtitle {
+  font-size: 1.25rem;
+  color: var(--p-text-var);
+  line-height: 1.6;
 }
 
-.process-timeline-item.visible {
-    opacity: 1;
-    transform: translateY(0);
+/* Steps Container */
+.p-steps-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 100px;
 }
 
-.process-timeline-item:nth-child(even) {
-    flex-direction: row-reverse;
+@media (min-width: 768px) {
+  .p-steps-container {
+    gap: 160px;
+  }
 }
 
-.process-timeline-content {
-    width: 42%;
-    padding: 30px;
-    background: var(--card-bg);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    position: relative;
-    backdrop-filter: blur(10px);
-    transition: transform 0.3s ease, border 0.3s ease;
+/* Connecting Line */
+.p-connecting-line {
+  display: none;
 }
 
-/* Neon hover effect */
-.process-timeline-content:hover {
-    transform: scale(1.03);
-    border: 1px solid var(--accent-cyan);
-    box-shadow: 0 0 22px rgba(0, 242, 255, 0.22);
-}
-
-.process-timeline-dot {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 12px;
-    height: 12px;
-    background: var(--bg-tech);
-    /* Replacing var(--bg) */
-    border: 3px solid var(--accent-cyan);
-    border-radius: 50%;
-    z-index: 2;
-    box-shadow: 0 0 15px var(--accent-cyan);
-}
-
-/* Process tag styling */
-.step-tag {
-    font-size: 0.78rem;
-    font-weight: 800;
-    color: var(--accent-cyan);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 10px;
+@media (min-width: 768px) {
+  .p-connecting-line {
     display: block;
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #006ff0, #6807ba, transparent);
+    opacity: 0.3;
+    transform: translateX(-50%);
+  }
 }
 
-.process-timeline-content h3 {
-    font-family: 'Poppins', sans-serif;
-    font-size: 1.5rem;
-    margin: 10px 0;
-    color: var(--text-main);
+/* Step Item */
+.p-step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 48px;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1);
 }
 
-.process-timeline-content p {
-    color: var(--text-dim);
-    line-height: 1.7;
-    font-size: 0.95rem;
-    margin: 0;
+.p-step-item.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-/* Optional bullet points inside card */
-.points {
-    margin-top: 14px;
-    padding-left: 16px;
-    color: var(--text-muted);
-    font-size: 0.92rem;
-    line-height: 1.6;
+@media (min-width: 768px) {
+  .p-step-item {
+    flex-direction: row;
+  }
+  .p-step-item.p-reverse {
+    flex-direction: row-reverse;
+  }
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .timeline::before {
-        left: 30px;
-    }
-
-    .timeline-item {
-        flex-direction: row !important;
-        margin-bottom: 60px;
-    }
-
-    .timeline-content {
-        width: calc(100% - 80px);
-        margin-left: 60px;
-    }
-
-    .timeline-dot {
-        left: 30px;
-    }
+/* Step Content */
+.p-step-content {
+  width: 100%;
+  order: 2;
 }
+
+@media (min-width: 768px) {
+  .p-step-content {
+    width: 50%;
+  }
+  .p-align-right {
+    text-align: right;
+    padding-right: 48px;
+  }
+  .p-align-left {
+    text-align: left;
+    padding-left: 48px;
+  }
+  .p-step-item .order-text { order: 1; }
+  .p-step-item .order-image { order: 3; }
+  .p-step-item.p-reverse .order-text { order: 3; }
+  .p-step-item.p-reverse .order-image { order: 1; }
+}
+
+.p-step-number {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 0.875rem;
+  letter-spacing: 0.1em;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.p-step-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+.p-step-desc {
+  color: var(--p-text-var);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+/* Step Badges */
+.p-step-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.p-step-badges.align-start { justify-content: flex-start; }
+.p-step-badges.align-end { justify-content: flex-start; }
+
+@media (min-width: 768px) {
+  .p-step-badges.align-end { justify-content: flex-end; }
+}
+
+.p-step-badges span {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: var(--p-surface-container);
+}
+
+.p-step-badges .bg-secondary-dim { background-color: var(--p-secondary-dim); color: var(--p-secondary); }
+.p-step-badges .bg-tertiary-dim { background-color: var(--p-tertiary-dim); color: var(--p-tertiary); }
+.p-step-badges .bg-error-dim { background-color: var(--p-error-dim); color: var(--p-error); }
+.p-step-badges .bg-primary-dim { background-color: var(--p-primary-dim); color: var(--p-primary-fixed); }
+.p-step-badges span:not([class*='bg-']) { background-color: var(--p-primary-dim); color: var(--p-primary); }
+
+/* Step Icon container */
+.p-step-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 1rem;
+  background: var(--p-surface-bright);
+  border: 1px solid var(--p-outline-var);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  position: relative;
+  z-index: 10;
+  transition: transform 0.5s ease;
+  background: rgba(104, 7, 186, 0.05); /* glass panel */
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  order: 1;
+}
+
+@media (min-width: 768px) {
+  .p-step-icon-container {
+    width: 5rem;
+    height: 5rem;
+    order: 2 !important; /* Force to center */
+    flex-shrink: 0;
+  }
+}
+
+.p-step-item:hover .p-step-icon-container {
+  transform: scale(1.1);
+}
+
+/* Icon Colors */
+.text-primary-icon { color: var(--p-primary); }
+.text-secondary-icon { color: var(--p-secondary); }
+.text-tertiary-icon { color: var(--p-tertiary); }
+.text-error-icon { color: var(--p-error); }
+.text-primary-fixed-icon { color: var(--p-primary-fixed); }
+
+/* Text Colors */
+.text-primary { color: var(--p-primary); }
+.text-secondary { color: var(--p-secondary); }
+.text-tertiary { color: var(--p-tertiary); }
+.text-error { color: var(--p-error); }
+.text-primary-fixed { color: var(--p-primary-fixed); }
+
+
+/* Image Container */
+.p-step-image-container {
+  width: 100%;
+  height: 16rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  filter: grayscale(100%);
+  transition: filter 0.7s ease;
+  order: 3;
+}
+
+.p-step-item:hover .p-step-image-container {
+  filter: grayscale(0%);
+}
+
+@media (min-width: 768px) {
+  .p-step-image-container {
+    width: 50%;
+  }
+}
+
+.p-step-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s ease;
+}
+
+.p-step-item:hover .p-step-image-container img {
+  transform: scale(1.05);
+}

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import "../styles/Hero.css";
 
-import customLogo from "../assets/code_nexus-removebg-preview.png";
+import customLogo from "../assets/codenexus-logo.png";
 import { Link } from "react-router-dom";
 
 const Hero = () => {
