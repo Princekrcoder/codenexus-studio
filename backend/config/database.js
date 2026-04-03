@@ -3,8 +3,13 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Parse DATABASE_URL or use individual config
-const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:kali@localhost:5432/codenexus';
+// Parse DATABASE_URL from environment
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+    console.error('❌ DATABASE_URL is not set in .env file');
+    process.exit(1);
+}
 
 const sequelize = new Sequelize(databaseUrl, {
     dialect: 'postgres',
@@ -16,10 +21,10 @@ const sequelize = new Sequelize(databaseUrl, {
         idle: 10000
     },
     dialectOptions: {
-        ssl: process.env.NODE_ENV === 'production' ? {
+        ssl: {
             require: true,
-            rejectUnauthorized: false
-        } : false
+            rejectUnauthorized: false // Required for Neon cloud PostgreSQL
+        }
     }
 });
 
