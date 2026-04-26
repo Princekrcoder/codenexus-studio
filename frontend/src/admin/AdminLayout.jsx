@@ -59,25 +59,26 @@ const AdminLayout = ({ theme, toggleTheme }) => {
     const navigate = useNavigate()
     const location = useLocation()
     const notifRef = useRef(null)
-    const { user, logout: authLogout, isAuthenticated } = useAuth()
+    const { user, logout: authLogout, isAuthenticated, loading } = useAuth()
 
     const pageInfo = PAGE_TITLES[location.pathname] || { title: 'Admin', subtitle: '' }
     const unreadCount = NOTIFICATIONS.filter(n => n.unread).length
 
     useEffect(() => {
-        // Check if user is logged in and has valid token
-        if (!user || !isAuthenticated) {
+        // Wait for session restore before checking auth
+        if (loading) return
+
+        if (!isAuthenticated || !user) {
             navigate('/login')
             return
         }
 
-        // Check if user has admin role
+        // Only Admin role may access this layout
         if (user.role !== 'Admin') {
             authLogout()
             navigate('/login')
-            return
         }
-    }, [user, isAuthenticated, navigate, authLogout])
+    }, [user, isAuthenticated, loading, navigate, authLogout])
 
     useEffect(() => {
         const h = (e) => { if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false) }
@@ -91,13 +92,20 @@ const AdminLayout = ({ theme, toggleTheme }) => {
         else setCollapsed(c => !c)
     }
 
-    const handleLogout = () => {
-        authLogout()
+    const handleLogout = async () => {
+        await authLogout()
         navigate('/login')
     }
 
-    if (!user) {
-        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>
+    // Show loading spinner while restoring session
+    if (loading || !user) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: 12 }}>
+                <div style={{ width: 36, height: 36, border: '3px solid rgba(99,102,241,0.2)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+                <span style={{ color: 'var(--admin-muted)', fontSize: '0.85rem' }}>Restoring session…</span>
+            </div>
+        )
     }
 
     const userInitials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'AD'

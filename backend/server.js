@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { sequelize } from './models/index.js';
 import authRoutes from './routes/authRoutes.js';
@@ -19,8 +20,31 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 1000;
 
-// Middleware
-app.use(cors());
+// ── CORS ── Must come before all routes
+const ALLOWED_ORIGINS = [
+    process.env.FRONTEND_URL,
+    'http://localhost:3000',
+    'http://localhost:5173',
+].filter(Boolean);
+
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, curl, Postman)
+        if (!origin) return callback(null, true);
+        if (ALLOWED_ORIGINS.includes(origin)) {
+            return callback(null, true);
+        }
+        callback(new Error(`CORS: Origin '${origin}' not allowed`));
+    },
+    credentials: true,                          // Required for cookies / Authorization header
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Set-Cookie'],
+    optionsSuccessStatus: 200,                  // IE 11 fix
+}));
+
+// ── Core Middleware ──
+app.use(cookieParser());                        // Parse cookies from requests
 app.use(express.json());
 
 // Routes

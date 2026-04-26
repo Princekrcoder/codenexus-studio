@@ -5,7 +5,7 @@ import {
     Menu, Sun, Moon, Bell, ChevronRight, Globe, Settings, BarChart3, LogOut
 } from 'lucide-react'
 import '../styles/ClientLayout.css'
-import { authAPI } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 
 import ClientDashboard from './pages/ClientDashboard'
 import ClientProjects from './pages/ClientProjects'
@@ -31,30 +31,26 @@ const ClientLayout = ({ theme, toggleTheme }) => {
     const [collapsed, setCollapsed] = useState(false)
     const [mobileOpen, setMobileOpen] = useState(false)
     const [notifOpen, setNotifOpen] = useState(false)
-    const [userInfo, setUserInfo] = useState(null)
     const navigate = useNavigate()
     const location = useLocation()
     const notifRef = useRef(null)
+    const { user: userInfo, logout: authLogout, isAuthenticated, loading } = useAuth()
 
     useEffect(() => {
-        // Check if user is logged in and has valid token
-        const user = authAPI.getCurrentUser()
-        const isAuth = authAPI.isAuthenticated()
+        // Wait for session restore before checking auth
+        if (loading) return
 
-        if (!user || !isAuth) {
+        if (!isAuthenticated || !userInfo) {
             navigate('/client/login')
             return
         }
 
-        // Check if user has client role
-        if (user.role !== 'Client') {
-            authAPI.logout()
+        // Only Client role may access this portal
+        if (userInfo.role !== 'Client') {
+            authLogout()
             navigate('/client/login')
-            return
         }
-
-        setUserInfo(user)
-    }, [navigate])
+    }, [userInfo, isAuthenticated, loading, navigate, authLogout])
 
     const pageInfo = userInfo ? {
         '/client': { title: 'Dashboard', subtitle: `Welcome back, ${userInfo.name} 👋` },
@@ -77,13 +73,20 @@ const ClientLayout = ({ theme, toggleTheme }) => {
         else setCollapsed(c => !c)
     }
 
-    const handleLogout = () => {
-        authAPI.logout()
+    const handleLogout = async () => {
+        await authLogout()
         navigate('/client/login')
     }
 
-    if (!userInfo) {
-        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>
+    // Show loading spinner while restoring session
+    if (loading || !userInfo) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: 12 }}>
+                <div style={{ width: 36, height: 36, border: '3px solid rgba(16,185,129,0.2)', borderTopColor: '#10b981', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+                <span style={{ color: 'var(--c-muted)', fontSize: '0.85rem' }}>Restoring session…</span>
+            </div>
+        )
     }
 
     const userInitials = userInfo.name ? userInfo.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'CL'
