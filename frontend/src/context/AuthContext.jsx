@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         logout,
-        isAuthenticated: !!user && !loading,
+        isAuthenticated: !!user,
         /**
          * Utility: update user in context without re-login (e.g. after profile update)
          */
