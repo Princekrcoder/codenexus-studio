@@ -123,3 +123,22 @@
         justify-content: center;
     }
 }
+
+@media (max-width: 480px) {
+    .cta-section {
+        padding: 60px 16px 80px;
+    }
+
+    .cta-card {
+        padding: 40px 16px;
+        border-radius: 24px;
+    }
+
+    .cta-card h2 {
+        font-size: 2rem;
+    }
+
+    .cta-card p {
+        font-size: 1rem;
+    }
+}

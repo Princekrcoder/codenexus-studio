@@ -261,3 +261,28 @@
         text-align: left;
     }
 }
+
+@media (max-width: 600px) {
+    .contact-section {
+        padding: 60px 16px 80px;
+    }
+
+    .contact-header h2 {
+        font-size: 2.2rem;
+    }
+
+    .info-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .contact-form-wrapper {
+        padding: 24px;
+        border-radius: 20px;
+    }
+
+    .social-icons {
+        justify-content: center;
+    }
+}

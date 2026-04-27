@@ -87,3 +87,29 @@
     font-size: 2.4rem;
   }
 }
+
+@media(max-width:480px) {
+  .trust-section {
+    padding: 30px 16px;
+  }
+  
+  .trust-header {
+    margin-bottom: 60px;
+  }
+
+  .trust-header h2 {
+    font-size: 2rem;
+  }
+  
+  .trust-card {
+    padding: 24px 20px;
+  }
+  
+  .trust-card h3 {
+    font-size: 1.2rem;
+  }
+  
+  .trust-card p {
+    font-size: 0.95rem;
+  }
+}

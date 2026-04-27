@@ -219,3 +219,43 @@
         /* Always show image top */
     }
 }
+
+@media (max-width: 600px) {
+    .portfolio-section {
+        padding: 80px 16px;
+    }
+
+    .portfolio-header {
+        margin-bottom: 50px;
+    }
+
+    .portfolio-header h2 {
+        font-size: 2.2rem;
+    }
+
+    .projects-grid {
+        gap: 50px;
+    }
+
+    .project-card {
+        padding: 24px;
+        gap: 20px;
+    }
+
+    .project-title {
+        font-size: 1.8rem;
+    }
+
+    .ps-item p {
+        font-size: 0.95rem;
+    }
+
+    .project-actions {
+        flex-direction: column;
+    }
+
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

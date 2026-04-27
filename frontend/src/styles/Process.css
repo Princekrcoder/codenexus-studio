@@ -285,4 +285,31 @@
 
 .p-step-item:hover .p-step-image-container img {
   transform: scale(1.05);
+}
+
+@media(max-width:600px) {
+  .p-wrapper {
+    padding: 60px 16px;
+  }
+  
+  .p-title {
+    font-size: 2.5rem;
+  }
+  
+  .p-step-item {
+    gap: 30px;
+  }
+  
+  .p-step-title {
+    font-size: 1.5rem;
+  }
+  
+  .p-step-image-container {
+    height: 12rem;
+  }
+  
+  .p-step-badges span {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+  }
 }
