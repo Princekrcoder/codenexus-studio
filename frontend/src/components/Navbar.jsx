@@ -6,8 +6,14 @@ import '../styles/Navbar.css'
 const Navbar = ({ theme, toggleTheme }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, loading } = useAuth()
   const navigate = useNavigate()
+
+  const getDashboardUrl = () => {
+    if (!user) return '/login'
+    const routes = { Admin: '/admin', Manager: '/manager', Client: '/client', Developer: '/' }
+    return routes[user.role] || '/login'
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,19 +25,6 @@ const Navbar = ({ theme, toggleTheme }) => {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
-  }
-
-  // Role-based dashboard URL
-  const getDashboardUrl = () => {
-    if (!user) return '/login'
-    if (user.role === 'Client') return '/client'
-    if (user.role === 'Manager') return '/manager'
-    return '/admin' // Admin, Developer
-  }
-
-  const handleLogout = async () => {
-    await logout()
-    navigate('/')
   }
 
   return (
@@ -46,22 +39,10 @@ const Navbar = ({ theme, toggleTheme }) => {
           <a href="#pricing">Pricing</a>
           <a href="#about">About</a>
         </div>
-
-        {isAuthenticated ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <Link to={getDashboardUrl()} className="nav-login-btn">Dashboard</Link>
-            <button
-              onClick={handleLogout}
-              className="nav-login-btn"
-              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer' }}
-            >
-              Logout
-            </button>
-          </div>
-        ) : (
-          <Link to="/login" className="nav-login-btn">Login</Link>
-        )}
-
+        {!loading && isAuthenticated
+          ? <button className="nav-login-btn" onClick={() => navigate(getDashboardUrl())}>Dashboard</button>
+          : <Link to="/login" className="nav-login-btn">Login</Link>
+        }
         <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === 'light' ? '🌞' : '🌙'}
         </button>

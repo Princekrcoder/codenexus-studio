@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import '../styles/Login.css'
 import SEO from './SEO'
@@ -10,7 +10,16 @@ const Login = ({ theme, toggleTheme }) => {
     const [loading, setLoading] = useState(false)
     const [errors, setErrors] = useState({})
     const navigate = useNavigate()
-    const { login } = useAuth()
+    const { login, user, isAuthenticated, loading: authLoading } = useAuth()
+
+    // Already logged in → redirect to dashboard
+    useEffect(() => {
+        if (!authLoading && isAuthenticated && user) {
+            const routes = { Admin: '/admin', Manager: '/manager', Client: '/client', Developer: '/' }
+            navigate(routes[user.role] || '/', { replace: true })
+        }
+    }, [isAuthenticated, authLoading, user, navigate])
+
 
     const validate = () => {
         const newErrors = {}
