@@ -11,6 +11,7 @@ const ACCESS_TOKEN_EXPIRY  = '15m';   // Short-lived access token
 const REFRESH_TOKEN_EXPIRY = '7d';    // Long-lived refresh token
 
 const IS_PROD = process.env.NODE_ENV === 'production';
+const IS_HTTPS = process.env.NODE_ENV === 'production' || process.env.FORCE_HTTPS === 'true';
 
 // ── Cookie Helper ──────────────────────────────────────────────────────────
 /**
@@ -21,7 +22,7 @@ const IS_PROD = process.env.NODE_ENV === 'production';
 const setCookies = (res, accessToken, refreshToken) => {
     const cookieBase = {
         httpOnly: true,                       // JS cannot access — prevents XSS theft
-        secure: IS_PROD,                      // HTTPS only in production
+        secure: IS_HTTPS,                     // Check HTTPS properly
         sameSite: IS_PROD ? 'none' : 'lax',   // 'none' needed for cross-domain in prod
         path: '/',
     };
@@ -41,7 +42,7 @@ const setCookies = (res, accessToken, refreshToken) => {
 const clearCookies = (res) => {
     const opts = {
         httpOnly: true,
-        secure: IS_PROD,
+        secure: IS_HTTPS,
         sameSite: IS_PROD ? 'none' : 'lax',
         path: '/',
     };
